@@ -1,0 +1,4 @@
+#!/bin/zsh
+local iso    = $1
+local mpoint = $2
+mount -t iso9660 -o ro,loop=/dev/loop0 "$1" "$2" 	

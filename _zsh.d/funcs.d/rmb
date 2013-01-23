@@ -1,0 +1,73 @@
+#!/bin/zsh
+# @author: duman
+dx=(壹 贰 叁 肆 伍 陆 柒 捌 玖 零)
+sx=(元整 拾 佰 仟 万 拾 佰 仟 亿 拾 佰 仟 万 拾万 佰万 仟万 亿)
+
+b=$1
+chu=$b
+local out
+#$b | sed -e 's/\.//g'
+
+if  [ "0" -eq $b ]
+then echo $dx[10]$sx[1] & exit 0
+fi
+
+len=${#b[*]}
+# echo len = $len
+
+aa=2
+bb=2
+
+for (( j=len-1; j>=0 ; --j))do
+((wei=j+1))
+fang=1
+	for (( i=1; i<=j  ; ++i))do
+		((fang=fang*10))
+	done
+#echo  chu = $chu fang = $fang wei = $wei
+((c= chu/fang))
+((chu= chu%fang))
+
+if [ "0" -eq  $c ]
+then 
+     if [ "0" -ne $chu ]
+     then 
+          [[ "9" -eq $wei ]]    &&  out+=$sx[9] && bb=1 && echo $bb
+          [[ "5" -eq $wei ]]    && [[ $bb -eq "2" ]] && out+=$sx[5]  && echo $bb
+	      [[ $wei -lt "5" ]]    && [[ $chu -lt "9999" ]]&&[[ "2" -eq $aa ]] && out+=$dx[10] && aa=1  && echo $bb
+          [[ $chu -gt "9999" ]] && [[ "2" -eq $aa ]] && out+=$dx[10] && aa=1  && echo $bb
+     fi
+else
+out+=${dx[$c]}${sx[$wei]}&&bb=2 # && echo $bb
+[[ $wei -eq "9" ]]&& bb=1 #&& echo $bb
+aa=2
+fi
+if  [ "1"  -eq $wei ]
+then break
+fi
+#if [  "5" -eq $wei ]
+#then out+=$sx[5]
+#fi
+#if [  "9" -eq $wei ]
+#then out+=$sx[9]
+#fi
+
+if [ "0" -eq $chu ]
+then  
+      #echo weishu = $wei
+      if [[  $wei -gt "5" ]]&&[[ $wei -lt  "9" ]]
+	then out+=$sx[5]
+      fi
+      if [  $wei -gt "9" ]
+	then out+=$sx[9]
+      fi
+      out+=${sx[1]}
+      break
+fi
+done
+echo $out
+
+
+
+
+

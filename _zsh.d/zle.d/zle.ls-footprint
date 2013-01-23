@@ -1,0 +1,3 @@
+BUFFER="cd -"
+zle end-of-line
+zle expand-or-complete

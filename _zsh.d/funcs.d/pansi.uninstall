@@ -1,0 +1,21 @@
+#!/bin/zsh
+
+function usage() {
+	echo "$0 -d: 卸载手机上的pansi应用程序" 
+	echo "$0 -e: 卸载模拟机上的pansi应用程序"
+}
+
+OPT=$1;
+ADB="adb $OPT"
+
+pansi_packages=($($ADB shell ls /data/data | grep com.pansi.msg | sed -e 's/\x0d//g' | xargs))
+
+[[ -z $pansi_packages ]] && echo "木发现pansi的包 或者 您没有root权限" && exit 1
+
+for x in $pansi_packages; do
+	echo "开始卸载: $x"
+	$ADB uninstall $x 
+done
+
+
+

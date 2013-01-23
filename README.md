@@ -1,0 +1,5 @@
+Amas's zshrc
+============
+
+Installation
+------------

@@ -1,0 +1,7 @@
+print "<Location /projects/myproject>"
+print   SetHandler mod_python
+print   PythonInterpreter main_interpreter
+print   PythonHandler trac.web.modpython_frontend
+print   PythonOption TracEnv /var/trac/myproject
+print   PythonOption TracUriRoot /projects/myproject
+print "</Location>"

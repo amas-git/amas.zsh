@@ -1,0 +1,6 @@
+# $1: string id
+# $2: string file name
+local _strings_key=$1
+local _strings_xml=$2
+
+xmlstarlet sel -t -c "/resources/string[@name='$_strings_key']/node()" $_strings_xml

@@ -1,0 +1,24 @@
+( x=`tput op` y=`printf %$((${COLUMNS}-6))s`;for i in {0..256};do o=00$i;echo -e ${o:${#o}-3:3} `tput setaf $i;tput setab $i`${y// /=}$x;done; )
+
+# 2010-09-06 10:39:27
+# User: AskApache
+# 3
+# Up
+# Down
+# Print all 256 colors for testing TERM or for a quick reference
+# This is super fast and an easy way to test your terminal for 256 color support. Unlike alot of info about changing colors in the terminal, this uses the ncurses termcap/terminfo database to determine the escape codes used to generate the colors for a specific TERM. That means you can switch your terminal and then run this to check the real output.
+# tset xterm-256color
+# at any rate that is some super lean code!
+# Here it is in function form to stick in your .bash_profile
+
+# aa_256 ()
+# {
+#     ( x=`tput op` y=`printf %$((${COLUMNS}-6))s`;
+#         for i in {0..256};
+#         do
+#             o=00$i;
+#             echo -e ${o:${#o}-3:3} `tput setaf $i;tput setab $i`${y// /=}$x;
+#         done )
+# }
+
+# From my bash_profile: http://www.askapache.com/linux-unix/bash_profile-functions-advanced-shell.html

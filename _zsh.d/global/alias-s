@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+alias -s html=$MY_X11_BROWER
+alias -s java=gvim
+alias -s xml=gvim
+alias -s cpp=$EDITOR 
+alias -s pdf=$MY_PDF_READER
+alias -s lua=$MY_X11_VIM
+alias -s xpi=$MY_X11_BROWER
+alias -s zip="unzip"
+alias -s djvu=djview
+alias -s chm=xchm
+alias -s tar.gz='tar xzvf'
+alias -s tgz='tar xzvf'

@@ -1,0 +1,24 @@
+# @author: amas
+# @desc: collect the target package's vm heap dump information, it will be
+# found @/data/misc/*.hprof
+#
+# 1. find the package pid
+# 2. kill -10 $pid
+# 3. adb shell pull /data/misc/xxx.hprof $local
+# 4. convert the .hprof file from the dalivk vm format to standard one.
+# 5. launch anaylise application (e.g: MAT)
+PKG=$1
+PKG_PID=$(adb shell ps | grep $PKG | awk '{print $2}')
+
+echo "PKG=$1 PID=$PKG_PID"
+adb shell chmod 777 /data/misc
+adb shell kill 10 $PKG_PID
+
+adb pull /data/misc/ .
+
+HPROF_LIST=($(echo *.hprof))
+echo "DUMP=$HPROF_LIST"
+
+for x in $HPROF_LIST; do
+    hprof-conv $x $x.std
+done

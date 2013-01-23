@@ -1,0 +1,2 @@
+local _file="$1"
+xmlstarlet sel -t -m resources/string  -v "concat(@name,', ',.)" -n "$_file"

@@ -1,0 +1,158 @@
+#-------------------------------------------------------------- [ Vcs    ]
+autoload -Uz vcs_info
+# debug hook functions
+# zstyle ':vcs_info:*+*:*' debug true
+zstyle ':vcs_info:*' stagedstr   "●"
+zstyle ':vcs_info:*' unstagedstr "●"
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git*:*' get-revision true
+zstyle ':vcs_info:git*:*' check-for-changes true
+# zstyle ':vcs_info:git*+set-message:*' hooks git-list-changed
+function +vi-git-list-changed() {  
+    integer max=3
+    local -a m
+    m=($(git ls-files --other --exclude-standard))
+    print -l $bg[red]$m[1,max]
+}
+# zstyle ':vcs_info:git*+pre-get-data:*' hooks check_untraced
+# function +vi-check_untraced() {
+# }
+
+zstyle ':vcs_info:git*' formats "b=%b  i=%7.7i c=%c u=%u"
+zstyle ':vcs_info:git*' actionformats '%b:%a'
+
+
+function prompt.amas.precmd() {
+  psvar=()
+  vcs_info
+  if [[ -n $vcs_info_msg_0_ ]]; then
+      psvar=(${=vcs_info_msg_0_})
+      psvar[1]=${psvar[1]#*=} # branch
+      psvar[2]=${psvar[2]#*=} # reversion 
+      psvar[3]=${psvar[3]#*=} # staged
+      psvar[4]=${psvar[4]#*=} # unstaged
+      psvar[5]=$([[ -n $(git ls-files --other --exclude-standard) ]] && print "+") #☢⚠☠
+  fi
+}
+
+PS1_V='%F{white}%1v%(3V.%F{green}%3v.)%(4V.%F{yellow}%4v.)%(5V.%F{red}%5v.)%F{yellow}>%F{default} '
+PS1_D='%F{yellow}$ %F{default}'
+PS1="%(1V.${PS1_V}.${PS1_D})"
+RPROMPT='%(?.%F{cyan}%~.%F{cyan}%~:%F{red}[%?])'
+
+
+#--------------------------------------------------------------[ 过时了 ]
+# PS1="%F{green}%1v%F{yellow}$%F{default} "
+# RPROMPT="%F{cyan}%(?..%~:%F{red}[%?])"
+### Quilt support ############################################################
+
+# Vcs_info does its best to support the patch management system quilt
+# <http://savannah.nongnu.org/projects/quilt>. The information gathered by
+# the quilt support always (and I'm saying always, because there are two
+# ways quilt support can be active - see "man zshcontrib" for details)
+# ends up in the `%Q' replacement in formats.
+#
+# Quilt support is also disabled by default. To turn its `addon' mode
+# on for all backends, do:
+
+# zstyle ':vcs_info:*' use-quilt true
+
+# function prompt_precmd() { vcs_info }
+# function set_prompt { PROMPT="${vcs_info_msg_0_}" }
+# autoload -U add-zsh-hook
+# add-zsh-hook precmd prompt_precmd
+# add-zsh-hook precmd set_prompt
+#-------------------------------------------------------------- [ Prompt ]
+# OUT(amas): RPS_EXIT_CODE="%(?..:$FG[ps-b-red][%?])"
+# OUT(amas): eval RPROMPT='$FG[ps-b-cyan]%~$RPS_EXIT_CODE$TR' 
+
+#-------------------------------------------------------------- [ zsh.precmd ]
+# precmd() {
+    # run before each command
+    # update tags related EV 
+    # update-tags-path-env ~/.etags.d
+    # update-prompt
+# }
+
+#-------------------------------------------------------------- [ Term Colors ]
+# Color Name: cyan white yellow magenta black
+#             blue red   default grey green
+autoload colors zsh/terminfo
+if [[ "$terminfo[colors]" -ge 8 ]]; then
+    typeset -A FG 
+    typeset -A BG
+
+    colors
+    for c in cyan white yellow magenta black blue red default grey green; do
+        FG[$c]=$fg[$c]
+        BG[$c]=$bg[$c]
+        FG[b-$c]=$terminfo[bold]$fg[$c]
+        BG[b-$c]=$terminfo[bold]$bg[$c]
+        # ps-*-* : prompts colors
+        FG[ps-$c]=%{$fg[$c]%}
+        BG[ps-$c]=%{$bg[$c]%}
+        FG[ps-b-$c]=%{$terminfo[bold]$fg[$c]%}
+        BG[ps-b-$c]=%{$terminfo[bold]$bg[$c]%}
+    done
+    TR=%{$terminfo[sgr0]%} # terminal reset
+fi
+
+ls-colors() {
+    for c in ${(k)fg} ; do
+        print $terminfo[sgr0]$fg[$c]$c --- $terminfo[bold]$fg[$c]$c
+    done
+}
+
+# $1: tag file root
+update-tags-path-env() {
+    local tagsDir=${1}/$(pwd)
+
+    if [[ -z $1 ]]; then          
+        export GTAGSROOT=''
+        export GTAGSDBPATH=''
+        msgI GTAGSROOT=${etagsRoot}
+        msgI GTAGSDBPATH=${etagsDbPath}
+        return -2
+    fi 
+
+    local etagsRoot=''
+    local etagsDbPath=''
+
+    if [[ -f $tagsDir/cscope.files ]]; then
+                
+        etagsRoot=$(pwd)
+        etagsDbPath=${tagsDir}
+
+        export GTAGSROOT=${etagsRoot}
+        export GTAGSDBPATH=${etagsDbPath}
+        # msgI GTAGSROOT=${etagsRoot}
+        # msgI GTAGSDBPATH=${etagsDbPath}
+    fi
+}
+
+update-prompt() {
+    local name=$(get-git-current-branch-name)
+
+    if [[ -z $name ]]; then
+        eval PROMPT='$FG[ps-b-yellow]%%\ $TR'
+        eval PROMPT='$FG[ps-b-yellow]$\ $TR'
+    else    
+        local changed=$(git diff --quiet ; echo $?)
+        local status_color
+
+        if [[ changed -ne 0 ]]; then
+            # something changed
+            status_color='$FG[ps-b-red]'
+        else
+            # nothing changed
+            status_color='$FG[ps-b-green]'
+        fi
+
+        eval PROMPT=$status_color'$name$FG[ps-b-yellow]\>\ $TR'
+    fi
+    
+}
+
+get-git-current-branch-name() {
+    git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
+}

@@ -1,0 +1,28 @@
+#!/bin/zsh
+# @desc: dump sqlite3 to trac wiki table
+# @author: amas
+# e.g:
+# $ db2wiki.sh green.db | tee  green.wiki
+
+SQLITE_BIN='sqlite3'
+
+
+ls-tables() {
+    local dbpath=$1
+    $SQLITE_BIN  $dbpath '.table' | xargs
+}
+
+
+
+main() {
+    local dbpath=$1
+    set -A tables $(ls-tables $dbpath)
+    for table in $tables; do
+        echo "== TABLE: $table =="
+        noglob $SQLITE_BIN  -header -separator '||' $dbpath " select * from $table;" \
+            | sed -e 's/^/||/g' -e 's/$/||/g'
+        echo "\n"
+    done   
+}
+
+main "$*"

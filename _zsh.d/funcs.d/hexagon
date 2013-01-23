@@ -1,0 +1,38 @@
+#!/bin/zsh
+# 绘制正六边形
+# $1: 画布大小
+# $2: 输出文件名
+
+zmodload zsh/mathfunc
+
+
+D=$1
+OUT=$2
+
+
+tg30=$[sqrt(3)/3]
+
+typeset -i A B C
+
+
+# 斜边
+C=$[$D/2]
+# 短直角边
+A=$[$C/2]
+# 长直角边
+B=$[$A/$tg30]
+
+CH=$[2*$C]
+CW=$[2*$B]
+
+echo "A=$A, B=$B, C=$C"
+
+                         # x,y
+P1=0,$A                  # 0,A
+P2=0,$[$A+$C]            # 0,A+C
+P3=$B,$[2*$C]            # B,2C
+P4=$[2*$B],$[$A+$C]      # 2B,A+C
+P5=$[2*$B],$A            # 2B,A
+P6=$B,0                  # B,0
+
+convert -size ${CW}x${CH} xc:none -fill red -draw "polygon $P1 $P2 $P3 $P4 $P5 $P6" $OUT

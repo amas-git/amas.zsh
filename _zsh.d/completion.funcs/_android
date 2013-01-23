@@ -1,0 +1,83 @@
+#compdef android
+
+# TODO: 完成list/create/update/move等命令
+_android() {
+    ops=(
+        '-v[Verbose mode: errors, warnings and informational messages are printed]'
+        '-h[Help on a specific command]'   
+        '-s[Silent mode: only errors are printed out]'
+    )
+
+    _arguments -s $ops[@] '*::android command:_android_command'
+}
+
+
+(( $+functions[_android_command] )) ||
+_android_command() {
+    local ret
+    
+    # subcommand list
+    android_cmds=(
+        'list: Lists existing targets or virtual devices'
+        'create: create project|avd|target|test-project|lib-project'
+        'update: update project|avd|target|test-project|lib-project'
+        'delete: 删除'
+        'move: 移动AVD'
+    )
+
+
+    # dispatch function
+    if (( CURRENT == 1 )); then
+        _describe -t android-command 'android command' android_cmds 
+    else
+        local cmd=${words[1]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:android-$cmd"
+        _call_function ret _android_command_$cmd || _message "no more arguments after $cmd"
+    fi
+    
+    return ret
+}
+
+_android_command_create() {
+    android_create_cmds=(
+        'project:Creates a new Android project'
+        'avd:Creates a new Android Virtual Device'
+        'test-project:Creates a new Android project for a test package'
+        'lib-project:Creates a new Android library project'
+    )
+
+    if (( CURRENT == 2 )); then
+        _describe  -t android-create-command 'android create command' android_create_cmds
+    else
+        local cmd=${words[2]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:android-create-$cmd"
+         _call_function ret _android_create_command_$cmd || _message "no more arguments after $cmd"
+    fi
+}
+
+#Action "create project":
+#  Creates a new Android project.
+#Options:
+#  -n --name     Project name
+#  -t --target   Target ID of the new project [required]
+#  -p --path     The new project's directory [required]
+#  -k --package  Android package name for the application [required]
+#  -a --activity Name of the default Activity that is created [required]
+_android_create_command_project() {
+    ops=(
+        '-n[Project name]'
+        '--package[Project name]'
+        '-t[Target ID of the new project  <required>]'
+        '-p[The new projects directory <required>]'
+        '-k[Android package name for the application <required>]'
+        '-a[Name of the default Activity that is created <required>]'
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*.tgz'
+}
+
+# init
+_android "$@"

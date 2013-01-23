@@ -1,0 +1,32 @@
+#!/bin/zsh
+
+                                  
+
+image=$1
+
+
+image_size=($(identify $image | awk '{print $3}' | sed 's/x/\ /g'))
+
+image_w=$image_size[1]
+image_h=$image_size[2]
+
+# 多分配2像素用于绘制.9的边
+w=$[$image_w+2]
+h=$[$image_h+2] 
+
+# 输出文件名
+out=${image%.*}.9.png
+offset=18
+
+pl="0,$[$offset-1] 0,$[$h-$offset-1]"
+pt="$[offset-1],0 $[$w-$offset-1],0"
+pr="$[w-1],$[offset-1] $[$w-1],$[$h-$offset-1]"
+pb="$[$offset-1],$[h-1] $[$w-$offset-1],$[$h-1]"
+
+# .9 edge (only support 4 edge)
+edge_l="line $pl"
+edge_t="line $pt"
+edge_r="line $pr"
+edge_b="line $pb"
+
+convert -size ${w}x${h} xc:none -draw $edge_l -draw $edge_t -draw $edge_b -draw $edge_r -gravity Center -draw "image over 0,0 0,0 $image" $out

@@ -1,0 +1,8 @@
+OUT=$1
+TAG=${2:=amas}
+
+msg="[$1] make some change $$:$SECONDS"
+
+echo $msg >> $OUT
+
+git add -A ; git commit -am $msg

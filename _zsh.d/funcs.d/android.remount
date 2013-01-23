@@ -1,0 +1,2 @@
+#!/bin/zsh
+adb shell mount -o remount /dev/block/mtdblock0 /system

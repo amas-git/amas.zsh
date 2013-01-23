@@ -1,0 +1,35 @@
+#!/bin/zsh
+TMP_DIR="/tmp/repackage.$$"
+SELF_NAME=$(basename $0)
+
+err() { echo "$@" >&2; }
+die() { err  "$@"; exit 1; }
+
+function usage() {
+    err " 压缩资源文件，优化安装包大小. e.g: " 
+    err " $ $SELF_NAME -apk app.apk -o ~/release/app.compressed.apk"
+}
+
+function main() {
+   o_apk=(-apk '')
+   o_out=(-o   '')
+   zparseopts -K -- o:=o_out apk:=o_apk h=o_help
+
+   out=$o_out[2]
+   apk=$o_apk[2]
+
+   [[ -z $apk || -z $o_out ]] && usage
+   [[ -d $TMP_DIR ]] && rm -rf $TMP_DIR 2>/dev/null
+   mkdir -p $TMP_DIR
+
+   cp -rp $apk $TMP_DIR/orig.apk
+   pushd $TMP_DIR
+   unzip orig.apk && rm orig.apk
+   popd
+   
+   # repackage
+   aapt p -f -F $out $TMP_DIR
+   rm -rf $TMP_DIR
+}
+
+main $*

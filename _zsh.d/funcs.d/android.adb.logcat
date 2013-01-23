@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+LOGCAT_V='s/^V/'"$BG[default]$FG[b-green]"'&/g'
+LOGCAT_D='s/^D/'"$BG[default]$FG[b-cyan]"'&/g'
+LOGCAT_I='s/^I/'"$BG[default]$FG[b-yellow]"'&/g'
+LOGCAT_E='s/^E/'"$BG[b-red]"'&/g'
+LOGCAT_F=''
+END_RESET='s/$/'"$terminfo[sgr0]"'/g'
+OPERATOR='s/[-=<>+{}:]/'"$FG[b-write]"'&'"$terminfo[sgr0]"'/g'    
+NAMEING_SPACE_LIKE='s/\([[:space:]=({]\)\([[:alpha:]][-_[:alpha:]]*[\.\$][[:alpha:]][[:alpha:][:digit:]\.\$@_\/]*\)/\1'"$FG[b-blue]"'\2'"$terminfo[sgr0]"'/g'
+DIGITS='s/\<[0-9][0-9]*\>/'"$FG[b-cyan]"'&'"$terminfo[sgr0]"'/g'
+HEX_DIGITS='s/\(0[xX]\([[:xdigit:]][[:xdigit:]]*\)\)/'"$FG[b-cyan]"'&'"$terminfo[sgr0]"'/g'
+
+# NOTE(zhoujb): do not change order of -e '...'
+adb logcat "$@" | sed -e $DIGITS -e $HEX_DIGITS -e $LOGCAT_E -e $NAMEING_SPACE_LIKE -e $END_RESET  -e $OPERATOR

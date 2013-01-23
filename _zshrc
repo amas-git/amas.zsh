@@ -1,0 +1,186 @@
+#!/bin/zsh
+# zhoujb.cn@gmail.com
+#  
+
+# Lines configured by zsh-newuser-install
+# End of lines configured by zsh-newuser-install
+# The following lines added by compinstall
+zstyle :compinstall filename "~/.zshrc"
+
+autoload -Uz compinit
+
+
+
+#-------------------------------------------------------------- [ Module.Zmv ]
+autoload -Uz zmv
+
+
+# 命令提示符
+#autoload -U promptinit
+#promptinit
+#prompt walters
+
+#-------------------------------------------------------------- [ History ]
+SAVEHIST=10000
+HISTSIZE=10000
+HISTFILE=~/.histfile
+
+#-------------------------------------------------------------- [ My Vars ]
+MY_X11_BROWER=chromium
+MY_TTY_BROWER=w3m
+MY_EMACS=emacs
+MY_EMACS_CLIENT=emacsclient
+MY_PDF_READER=evince
+MY_TTY_VIM=vim
+MY_X11_VIM=gvim
+HIGHT_THEME=pablo
+
+
+setopt INC_APPEND_HISTORY   # append history record
+setopt HIST_IGNORE_DUPS     # remove duplicate command ($fc -l will get unique command list)
+setopt EXTENDED_HISTORY     # add timestaps
+setopt HIST_IGNORE_ALL_DUPS # remove duplicate command in history files ($history will  get unique command list)
+setopt HIST_IGNORE_SPACE
+setopt AUTO_PUSHD           # auto pushd after cd , press $cd -<tab> show dir stack
+setopt PUSHD_IGNORE_DUPS    # remove duplicate path
+setopt AUTOCD               # type dir instead of 'cd dir'
+
+# word pattern 
+WORDCHARS='*?_-[]~=&;!#$%^(){}<>' 
+
+#-------------------------------------------------------------- [ PATH ]
+path=(~/bin $path /usr/local/bin)
+#-------------------------------------------------------------- [ Prompt ]
+. ~/.zsh.d/global/prompt.amas
+precmd() {
+    prompt.amas.precmd
+}
+#======================================================
+# Options
+#
+
+setopt AUTO_LIST
+setopt AUTO_MENU
+setopt MENU_COMPLETE
+autoload -U compinit
+compinit
+
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh.d/cache
+zstyle ':completion:*:match:*' original only
+zstyle ':completion::prefix-1:*' completer _complete
+zstyle ':completion:predict:*' completer _complete
+zstyle ':completion:incremental:*' completer _complete _correct
+zstyle ':completion:*' completer _complete _prefix _correct _prefix _match _approximate
+
+#避免CVS目录出现在补全列表中
+zstyle ':completion:*:(all-|)files' ignored-patterns '(|*/)CVS'
+zstyle ':completion:*:cd:*' ignored-patterns '(*/)#CVS'
+zstyle ':completion:*:cd:*' ignore-parents parent pwd
+
+#路径补全
+zstyle ':completion:*' expand 'yes'
+zstyle ':completion:*' squeeze-shlashes 'yes'
+zstyle ':completion::complete:*' '\\'
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*:*:default' force-list always
+
+# highlight complete list 
+whence dircolors > /dev/null  && eval $(dircolors -b)
+export ZLSCOLORS="${LS_COLORS}"
+zmodload zsh/complist
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+#错误校正      
+zstyle ':completion:*' completer _complete _match _approximate
+zstyle ':completion:*:match:*' original only
+zstyle ':completion:*:approximate:*' max-errors 1 numeric
+
+#kill 命令补全      
+compdef pkill=kill
+compdef pkill=killall
+zstyle ':completion:*:*:kill:*' menu yes select
+zstyle ':completion:*:*:*:*:processes' force-list always
+zstyle ':completion:*:processes' command 'ps -au$USER'
+
+#补全类型提示分组 
+zstyle ':completion:*:matches'      group 'yes'
+zstyle ':completion:*'              group-name ''
+zstyle ':completion:*:options'      description 'yes'
+zstyle ':completion:*:options'      auto-description '%d'
+zstyle ':completion:*:descriptions' format "$FG[b-cyan]--- %d ---$TR"
+zstyle ':completion:*:messages'     format "$FG[yellow]--- %d ---$TR"
+zstyle ':completion:*:warnings'     format "$FG[b-red]--- No Matches Found ---$TR"
+
+#If you end up using a directory as argument, this will remove the trailing slash (usefull in ln)
+zstyle ':completion:*' squeeze-slashes true
+
+#-------------------------------------------------------------- [ Zsh.Alises | Hashes ]
+source ~/.zsh.d/global/hash-d
+source ~/.zsh.d/global/alias-s
+source ~/.zsh.d/global/alias-g
+source ~/.zsh.d/global/alias
+source ~/.zsh.d/global/alias.${$(uname):l}
+
+
+function +fpath() {
+    local _path="$1"
+    if [[ -z $fpath[(r)$_path] ]]; then
+        fpath=($_path $fpath)
+    fi
+}
+
+function autoload.d() {
+    local x
+    for x in $argv; do
+        if [[ -d "$x" ]]; then
+            +fpath "$x"
+            autoload "$x"/*(:t)
+        fi
+    done
+}
+
+#-------------------------------------------------------------- [ Zsh.PreludeFunctions ]
+autoload.d ~zshd/funcs.d ~self.fun
+
+#-------------------------------------------------------------- [ Zsh.Zle.UserWidget ]
+autoload.d ~/.zsh.d/zle.d
+set -A zleUserWidget $(echo ~/.zsh.d/zle.d/*(:t))
+for func in $zleUserWidget; do
+    zle -N $func
+done
+
+#-------------------------------------------------------------- [ Zsh.CompletionFunctions]
+autoload.d ~/.zsh.d/completion.funcs 
+compinit
+#-------------------------------------------------------------- [ Zsh.KeyBindings ]
+source ~/.zsh.d/global/bindkey
+
+
+
+start-emacs-client() {
+    $MY_EMACS_CLIENT -n "$@" || (  $MY_EMACS -T Emacs --name main && $MY_EMACS_CLIENT -n "$@" )
+}
+
+
+
+
+#-------------------------------------------------------------- [ Etc.Modules ]
+# TODO(amas): move it to completion dir
+import() {
+    local target="@*";
+    [[ -r "$target" ]] && . "$target"
+}
+
+. ~/.zsh.d/module/git-flow-completion.zsh
+. ~/.zsh.d/module/antlr.zsh
+. ~/.profile
+. ~/.alias
+. ~/.zsh.d/module/zlog.zsh
+. ~/.zsh.d/module/libxml.zsh
+. ~/.zsh.d/module/template.zsh
+. ~/.zsh.d/module/libjava.zsh
+. ~/.zsh.d/module/libandroid.zsh
+. ~/.zsh.d/module/mix.zsh

@@ -1,0 +1,46 @@
+
+# $1: string id
+# $2: string file name
+function android.strings.get() {
+    local _strings_key=$1
+    local _strings_xml=$2
+
+    xmlstarlet sel -t -c "/resources/string[@name='$_strings_key']/node()" $_strings_xml
+}
+
+
+# $1 : string.xml
+# $2 : string.xml'
+function main() {
+    local _strings_xml_0=$1
+    local _strings_xml_1=$2
+
+    local _v0=''
+    local _v1=''
+    local _src=''
+
+    xmlstarlet sel -t -m "/resources/string" -v @name -n $_strings_xml_0 >  .keys
+    xmlstarlet sel -t -m "/resources/string" -v @name -n $_strings_xml_1 >> .keys
+    
+    set -A keys $(echo $(sort -u --parallel=4 .keys | xargs))
+    typeset -A merged
+
+    echo "<resources>"
+    for x in $keys; do 
+        _v0=$(android.strings.get $x $_strings_xml_0) # | sha1sum | sed -e 's/[\ -]//g')
+        _v1=$(android.strings.get $x $_strings_xml_1) # | sha1sum | sed -e 's/[\ -]//g')
+        
+        if [[ $_v0 = $_v1 ]]; then
+            # unchanged string
+        else
+            [[ -z $_v0 ]] && merged[$x]="add" && _src=$_strings_xml_1
+            [[ -z $_v1 ]] && merged[$x]="del" && _src=$_strings_xml_0
+            [[ -n $_v0 ]] && [[ -n $_v1 ]] && [[ $_v0 != $_v1 ]] && merged[$x]="mod" && _src=$_strings_xml_1 # TODO(amas): trim then compare
+            echo "<string name=\"$x\" tag=\"$merged[$x]\">$(android.strings.get $x $_src)</string>"
+        fi
+    done
+    echo "</resources>"
+}
+
+
+main "$*"

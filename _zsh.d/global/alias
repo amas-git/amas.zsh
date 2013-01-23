@@ -1,0 +1,144 @@
+#!/bin/zsh
+
+#alias ll="ls -al --color"
+alias ls="ls --color"
+#alias l="ls -a --color"
+alias du="du -h"
+alias p="print"
+alias P="print -P"
+alias ed="$MY_EMACS --daemon"
+alias ec="start-emacs-client"
+alias ek="pkill -n emacs"
+alias rmswapf='rm -f .*sw*'
+alias top='htop'
+alias g='global -x'
+alias cel='emacs -q -batch -f batch-byte-compile'
+alias fr='file-roller'
+alias see='ps -ef'
+alias 88='sudo sync && sudo shutdown -h now'
+alias csearch='~/android/search'
+alias killServer='sudo /home/blue/android/android-sdk-linux_x86/platform-tools/adb kill-server'
+alias device='sudo /home/blue/android/android-sdk-linux_x86/platform-tools/adb devices'
+alias android="cd ~/android"
+alias mime="cd ~/work/mime"
+alias xml="xmlstarlet"
+alias sandbox='cd ~/work/sandbox'
+alias amas='cd ~/work/amas'
+alias startVpn='sudo /etc/init.d/openvpn start'
+export TRAC_HOST=192.168.81.225
+export TRAC_USER=duman
+export TRAC_PASS=aqqqqqqq
+export REPO_HOST=192.168.81.225
+
+#-----------------------------------------------------[ ACPI ]
+# 当前正在使用的内核支持的acpi模块列表
+alias acpi-ls-mod="ls -l /lib/modules/$(uname -r)/kernel/drivers/acpi"
+alias acpi-cd-mod-dir="cd /lib/modules/$(uname -r)/kernel/drivers/acpi"
+alias pacman-mirrorlist-top='sudo rankmirrors -n 5 /etc/pacman.d/mirrorlist.org > /etc/pacman.d/mirrorlist'
+
+#-----------------------------------------------------[ X11 ]
+alias x11-get-wm-class='msgI "Please click a window !!!" ; xprop | grep  WM_CLASS'
+alias x11-get-wm-name='msgI "Please click a window !!!" ; xprop | grep  ^WM_NAME'
+
+#-----------------------------------------------------[ Arch ]
+alias pacman-rm.package='sudo pacman -R'
+alias pacman-rm.package.and-nouse-depend="sudo pacman -Rs"
+# pacman会备份被删除程序的配置文件，将它们加上*.pacsave扩展名。如果你在删除软件包时要同时删除相应的配置文件
+alias pacman-rm.package.and-keep-config="sudo pacman -Rn"
+
+alias pacman-make-world='sudo pacman -Sy ; pacman -Su'
+alias pacman-search='sudo pacman -Ss'
+alias pacman-query='sudo pacman -Qs'
+alias pacman-list-files='sudo pacman -Ql'
+alias pacman-which='sudo pacman -Qo'
+alias pacman-download='sudo pacman -Sw'
+alias pacman-add-local='sudo pacman -U'
+alias pacman.self-update=''
+
+#仅在你确定不需要做任何软件包降级工作时才这样做。pacman -Scc会从缓存中删除所有软件包。
+alias pacman-clear-cache='sudo pacman -Scc'
+alias pacman-conf='vim /etc/pacman.conf'
+
+#-----------------------------------------------------[ System ] 
+# This command will remove all man doc from cache dir and rebuild them
+# e.g: sometimes may occur such issue when man somthing
+# ------------------------
+# $ man ls
+# >gdbm fatal: read error
+# try this command to fix it
+alias man-doc-rebuild='rm -rf /var/cache/man && /etc/cron.daily/man-db'
+# --------------------------
+alias ls-partitons='fdisk -l'
+alias ls-partions-by-uuid='ls /dev/disk/by-uuid/ -alh'
+alias ls-partions-by-label='ls /dev/disk/by-label -alh'
+alias ls-partions-by-id='ls /dev/disk/by-id -alh'
+
+
+alias vifstab='sudo vi /etc/fstab'
+alias virc.conf='sudo vi /etc/rc.conf'
+
+# ----------------------------------------------------[ Fonts ]
+alias fonts-reload='fc-cache -vf'
+
+#-----------------------------------------------------[ Xmonad ]
+alias xmonad-check-rc='xmonad --recompile' 
+alias xmonad-restart='xmonad --recompile; xmonad --restart'
+# Each stable release of xmonad is accompanied by a stable release of 
+# the contrib library, which you should use if (and only if) you're using 
+# a stable release of xmonad. You can find the most recent tarball here: 
+# http://hackage.haskell.org/cgi-bin/hackage-scripts/package/xmonad-contrib
+alias xmonad-check-out-contrib="darcs get http://code.haskell.org/XMonadContrib"
+
+alias xmonad-check-rc='xmonad --recompile' 
+
+#-----------------------------------------------------[ Http ]
+alias apache-ls-mod='ls /etc/httpd/modules'
+
+#-----------------------------------------------------[ Trac ]
+alias trac.upgrade="sudo -u http trac-admin  ~my-trac-env upgrade"
+alias trac.repo.resync="sudo -u http trac-admin ~my-trac-env repository resync"
+#-----------------------------------------------------[ Feh ]
+alias fehd="feh -r"
+alias ls-image="feh -l *.jpg"
+
+#-----------------------------------------------------[ VirtualBox ]
+alias vbox.listvms="VBoxManage list vms"
+alias vbox.start-default-vm='VBoxManage  startvm "Windows XP Main"'
+
+#-----------------------------------------------------[ VirtualBox ]
+alias adb.ls.sdcard='adb shell ls /sdcard'
+alias adb.ls="adb shell ls"
+alias retrace='/opt/android/tools/proguard/bin/retrace.sh'
+
+alias git.show.version='git rev-parse --short HEAD'
+
+#-----------------------------------------------------[ Sqlite ]
+alias sqlite='sqlite3 -line'
+#-----------------------------------------------------[ Misc. ]
+# echo WAN IP
+alias www.ip="curl ifconfig.me"
+
+# simple http server
+alias www.simple_httpd="python -m SimpleHTTPServer"
+alias du='du -h'
+alias df='df -h'
+alias c="git commit -am"
+alias fs="mount | column -t"
+alias github.repo.info="curl"
+alias xml.format='xmlstarlet fo -s 4'
+# 计算机型号
+alias self.model="sudo hal-get-property --udi /org/freedesktop/Hal/devices/computer --key 'system.hardware.product'"
+
+#-----------------------------------------------------[ Work ]
+alias vpn.jobs="sudo poff pansi; sudo pon pansi; sleep 10; sudo route add default dev ppp0 && echo 'vpn up!!!'"
+
+#-----------------------------------------------------[ URL ]
+alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
+alias urldecode='python -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
+#-----------------------------------------------------[ XML JSON ... ]
+alias json.format='python -mjson.tool'
+alias xml.format="xmlstarlet fo -s 4"
+#-----------------------------------------------------[ Zsh]
+alias functions.name="functions  | sed -n 's/\(.*\)\ ().*{$/\1/p'"
+#-----------------------------------------------------[ CouchDB ]
+alias couch.futon='chromium http://127.0.0.1:5984/_utils'

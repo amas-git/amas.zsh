@@ -1,0 +1,35 @@
+#=====================================================
+# Keybinding
+# <C-v> and then press keystroke to see the keycode
+#=====================================================
+#       \a     bell character
+#       \b     backspace
+#       \e, \E escape
+#       \f     form feed
+#       \n     linefeed (newline)
+#       \r     carriage return
+#       \t     horizontal tab
+#       \v     vertical tab
+#       \NNN   character code in octal
+#       \xNN   character code in hexadecimal
+#       \M[-]X character with meta bit set
+#       \C[-]X control character
+#       ^X     control character
+
+bindkey -e
+bindkey "\e[3~"  delete-char
+bindkey ";5D"    backward-word              # <C-Left>
+bindkey ";5C"    forward-word               # <C-Right>
+bindkey "^z"     undo                       # <C-z>
+#bindkey "^^?" backward-delete-word         # <C-backspace>
+bindkey "5~"     delete-word                # <C-Del>
+bindkey "^W"     zle.delete-basename 
+bindkey "\e\e"   zle.sudo-command-line
+bindkey "^[[29~" zle.ls-footprint
+bindkey "^[[1~"  zle.backhome 
+bindkey "\t"     zle.tabcd 
+bindkey "^[l"    zle.ls                     # <M-L>
+bindkey .        zle.lazy-dot 
+bindkey "^[[13~" zle.run-last-command
+bindkey "\C-p"   history-incremental-pattern-search-backward
+bindkey "\C-\b"  zle.back-to-parent

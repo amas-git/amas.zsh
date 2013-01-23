@@ -1,0 +1,204 @@
+#!/bin/zsh
+# @author: amas
+# @desc  : zsh script collection for android xml file editing
+# 
+# e.g:
+# $ . ~/Downloads/android.xml.ed
+# $ android.strings2csv strings.xml
+#
+# NOTICE(amas):
+#  - 如果需要直接修改XML文件，请使用-L参数，否则修改结果将打印到STDOUT中
+#
+#
+# TODO:
+#  1. Diff string.xml
+#  2. csv2xml
+#  3. patch the diff file
+#
+# diff file1.csv file2.csv --old-line-format="< %L" --new-line-format="> %L" --unchanged-line-format="= %L"
+export ANDROID_XML_NS="android=http://schemas.android.com/apk/res/android"
+export XLIFF_XML_NS="xliff=urn:oasis:names:tc:xliff:document:1.2"
+
+function main() {
+        
+}
+
+
+# resources
+# resources/skip
+# resources/string
+# resources/string/font
+# resources/string/xliff:g
+function android.strings.put() {
+    local _name="$1"
+    local _value="$2"
+    local _strings_xml="$3"
+
+    local _xpath="/resources/string[@name='$_name']"
+
+    local _orgin_value=$(xmlstarlet sel -t -m $_xpath -v . $_strings_xml)
+
+    # -P : 保留原XML的格式
+    # -L : 直接编辑XML文件
+    # -S : preserve non-significant spaces
+    xmlstarlet ed -P -S -u $_xpath -v "$_value" "$_strings_xml" 
+}
+
+function android.strings.foreach() {
+    local _strings_xml=$1
+
+    _keys=($(xmlstarlet sel -t -m "/resources/string" -v @name -o ' ' $_strings_xml))
+    
+    for x in $_keys; do
+        v=$(android.strings.get $x $_strings_xml)
+        echo -E $x=$v SHA=$(echo $v | sha1sum)
+    done
+}
+
+function android.strings.hash() {
+    local _strings_xml=$1
+    local _out=$2
+
+    local _v=''
+
+    _keys=($(xmlstarlet sel -t -m "/resources/string" -v @name -o ' ' $_strings_xml))
+    
+    typeset -A hash_map
+
+    for x in $_keys; do
+        hash_map[$x]=$(android.strings.get $x $_strings_xml | md5sum | sed -e 's/[\ -]//g')
+    done
+
+    echo $hash_map
+}
+
+# $1 : string.xml
+# $2 : string.xml'
+function android.strings.diff() {
+    local _strings_xml_0=$1
+    local _strings_xml_1=$2
+
+    local _v0=''
+    local _v1=''
+    local _src=''
+
+    xmlstarlet sel -t -m "/resources/string" -v @name -n $_strings_xml_0 >  .keys
+    xmlstarlet sel -t -m "/resources/string" -v @name -n $_strings_xml_1 >> .keys
+    
+    set -A keys $(echo $(sort -u --parallel=4 .keys | xargs))
+    typeset -A merged
+
+    echo "<resources>"
+    for x in $keys; do 
+        _v0=$(android.strings.get $x $_strings_xml_0) # | sha1sum | sed -e 's/[\ -]//g')
+        _v1=$(android.strings.get $x $_strings_xml_1) # | sha1sum | sed -e 's/[\ -]//g')
+        
+        if [[ $_v0 = $_v1 ]]; then
+            # unchanged string
+        else
+            [[ -z $_v0 ]] && merged[$x]="add" && _src=$_strings_xml_1
+            [[ -z $_v1 ]] && merged[$x]="del" && _src=$_strings_xml_0
+            [[ -n $_v0 ]] && [[ -n $_v1 ]] && [[ $_v0 != $_v1 ]] && merged[$x]="mod" && _src=$_strings_xml_1 # TODO(amas): trim then compare
+            echo "<string name=\"$x\" tag=\"$merged[$x]\">$(android.strings.get $x $_src)</string>"
+        fi
+    done
+    echo "</resources>"
+}
+
+
+function md5sum.string() {
+    echo -E "$*" | md5sum | sed -e 's/[\ -]//g'
+}
+
+# $1: string id
+# $2: string file name
+function android.strings.get() {
+    local _strings_key=$1
+    local _strings_xml=$2
+
+    xmlstarlet sel -t -c "/resources/string[@name='$_strings_key']/node()" $_strings_xml
+}
+
+
+function android.strings2array() {
+    local _strings_xml=$1
+    local _PH="===::~::===" # place holder for internal proc
+    local _delim=' '
+    local _quot="'"
+    xmlstarlet sel -t -m "/resources/string" -o $_PH  -v "@name" -o $_PH -o $_delim -o $_PH -c "node()" -o $_PH -n $_strings_xml | sed -e 's/\xmlns:xliff=.*\" //g' -e "s/\"/\"\"/g" -e "s/$_PH/$_quot/g"
+}
+
+function android.strings2csv() {
+    local _strings_xml=$1
+    local _PH="===::~::===" # place holder for internal proc
+    local _delim=','
+
+    xmlstarlet sel -t -m "/resources/string[@tag!='del']" -o $_PH  -v "@name"  -o $_PH -o $_delim -o $_PH -c "node()" -o $_PH -o $_delim -v "concat('&quot;',@tag,'&quot;')" -n $_strings_xml | sed -e 's/\xmlns:xliff=.*\" //g' -e "s/\"/\"\"/g" -e "s/$_PH/\"/g"
+}
+
+
+function android.strings.apply-patch() {
+
+}
+
+function android.csv2strings() {
+    
+}
+
+
+function android.strings.rm() {
+    local _name="$1"
+    local _strings_xml="$2"
+    local _xpath="/resources/string[@name='$_name']"
+
+    # -P : 保留原XML的格式
+    # -L : 直接编辑XML文件
+    # -S : preserve non-significant spaces
+    xmlstarlet ed -P -S -d $_xpath "$_strings_xml" 
+}
+
+
+function quote() {
+    echo '"'$1'"'
+}
+
+
+function android.project.get-root() {
+    #TODO(amas): search android project root    
+}
+
+function android.xml.ls-permissions() {
+
+}
+
+function android.xml.ls-elem() {
+#xml sel -N android="http://schemas.android.com/apk/res/android" -t -m manifest/application/activity -v @android:name -n AndroidManifest.xml
+    local xpath=$1
+    local file=$2
+
+    xml sel -N $ANDROID_XML_NS -t -m "$xpath" -v "@android:name" -n $file
+}
+
+
+alias android.manifest.permission.ls="xml sel -N $ANDROID_XML_NS -t -m 'manifest/uses-permission' -v '@android:name' -o ' ' "
+
+alias android.manifest.activity.ls="xml sel -N $ANDROID_XML_NS -t -m 'manifest/application/activity' -v '@android:name' -o ' ' "
+# manifest
+# manifest/application
+# manifest/application/activity
+# manifest/application/activity/intent-filter
+# manifest/application/activity/intent-filter/action
+# manifest/application/activity/intent-filter/category
+# manifest/application/service
+# manifest/application/service/intent-filter
+# manifest/application/service/intent-filter/action
+# manifest/uses-permission
+
+# manifest/application/service
+# manifest/application/service/@android:name
+# manifest/application/service/intent-filter
+# manifest/application/service/intent-filter/action
+# manifest/application/service/intent-filter/action/@android:name
+# manifest/application/service/intent-filter
+# manifest/application/service/intent-filter/action
+# manifest/application/service/intent-filter/action/@android:name

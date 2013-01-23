@@ -1,0 +1,16 @@
+#!/bin/zsh
+# Download all files in specify URL with specify extention.
+#
+# -r  : 递归下载
+# -l1 : 递归下载深度为1,即只下载当前目录下的连接
+# -H  : SpanDomains, 追踪其它站点的URLs
+# -np : "No Parent", 不追踪父目录的URLS
+# -nd : 将所有符合条件的资源保存到同一目录下，而不是克隆网站的目录结构
+# -A  : 只下载指定后缀名的文件
+# -erobots=off : 忽略标准的robots.txt文件
+# -w5 : 每次下载请求间隔5秒
+
+local url="$1"
+local fileSuffix="$2"
+
+wget -r -l1 -H -t1 -nd -N -np -A.$fileSuffix -w2 -erobots=off $url

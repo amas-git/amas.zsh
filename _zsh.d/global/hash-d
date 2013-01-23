@@ -1,0 +1,11 @@
+hash -d u='/media/disk'
+hash -d zshd=~/.zsh.d
+hash -d ref='/mnt/ntfs/b'
+hash -d cupcake="/home/amas/src/cupcake/device-cupcake"
+hash -d docs=/data/docs/
+hash -d self.fun=~/.zsh.self.d
+hash -d my-trac-env="/data/www/trac-amas-cs" 
+hash -d src=/data/src
+hash -d src.erlang=/data/src/erlang
+hash -d src.zsh=/data/src/zsh
+hash -d doanload=/data/download/

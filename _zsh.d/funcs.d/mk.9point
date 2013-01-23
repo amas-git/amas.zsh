@@ -1,0 +1,13 @@
+#!/bin/sh
+
+color=$1
+out=$2
+
+convert -size 3x3 xc:none -pointsize 1 \
+-draw "fill $color point 1,1"          \
+-draw "fill black  point 0,1"          \
+-draw "fill black  point 1,0"          \
+-draw "fill black  point 2,1"          \
+-draw "fill black  point 1,2"          \
+$out
+

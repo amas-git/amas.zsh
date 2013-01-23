@@ -1,0 +1,19 @@
+#!/bin/zsh
+
+main() {
+echo "My life begin ..."
+sleep 1.5
+echo 您的电脑可不怎么样,${CPUTYPE}-${MACHTYPE}可谓已经OUT了, ${OSTYPE}还不错, 总比微软强.
+echo 我是从"$0"开始执行的,我的PID是"$$",我的父进程PID为$PPID, 
+echo 您向我传递了"$#"个参数,他们分别是:"$@"
+echo 在我之前执行的命令状态码为"$?", 它的最后一个参数是"$_"
+echo 我在main中的第${LINENO}行打印了这句话.
+echo 我变化无常,我讨厌$RANDOM
+echo 我只存活过${SECONDS}秒,可谓短命
+echo 您应当在终端${TTY}上看到这些留言
+echo 您的用户ID为$UID, 我会牢记. ${USERNAME}您真是一个好人. 您正位于${PWD}
+echo 是${ZSH_NAME}帮我向您传达了这些信息,它的版本号是${ZSH_VERSION},是${VENDOR}编译了它.
+echo 尽管我从不听别人的忠告,但您还是可以通过以下信息联系我:$signals
+}
+
+main $*

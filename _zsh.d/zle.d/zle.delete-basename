@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+local WORDCHARS=${WORDCHARS//\//}
+zle .backward-delete-word

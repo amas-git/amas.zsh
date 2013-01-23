@@ -1,0 +1,83 @@
+n#!/bin/zsh
+# 绘制正六边形
+# $1: 画布大小
+# $2: 输出文件名
+#
+#
+# 使用方法:
+# -size:       图标大小
+# -image:      小图
+# -image-size: 小图大小
+# -o:          图标文件名
+# -fg:         图标颜色
+# ./mkicon -image trash.png -image-size 54 -o icon.png
+zmodload zsh/mathfunc
+
+main()
+{
+    o_out=(-o hexgon.png)
+    o_size=(-size 128)
+    o_fg=(-fg green)
+    o_bg=(-bg none)
+    o_image_over=(-image '')
+    o_image_size=(-image-size 64)
+    o_padding=(-padding 2)
+
+    zparseopts -K -- o:=o_out size:=o_size fg:=o_fg bg:=o_bg image:=o_image_over image-size:=o_image_size h=o_help
+
+#    if [[ $? != 0 || "$o_help" != "" ]]; then
+#        echo Usage: $(basename "$0") "[-p PORT] [-r DIRECTORY]"
+#        exit 1
+#    fi
+
+    out=$o_out[2]
+    size=$o_size[2]
+    fg=$o_fg[2]
+    bg=$o_bg[2]
+    padding=$o_padding[2]
+    image=$o_image_over[2]
+    image_size=$o_image_size[2]
+    
+    if [[ $image_size = *% ]]; then
+        image_size=$[int((${image_size%'%'}/100.0)*$size)]
+    fi
+
+    echo "out=$out size=$size bg=$bg image=$image image_size=$image_size"
+
+    tg30=$[sqrt(3)/3]
+
+    typeset -i A B C
+
+
+    # 斜边
+    C=$[($size-2)/2]
+    # 短直角边
+    A=$[$C/2]
+    # 长直角边
+    B=$[$A/$tg30]
+
+    CH=$[2*$C]
+    CW=$[2*$B]
+
+    echo "A=$A, B=$B, C=$C"
+
+                                 # x,y
+    P1=0,$[$A-1]                 # 0,A
+    P2=0,$[$A+$C-1]              # 0,A+C
+    P3=$[$B-1],$[2*$C-1]         # B,2C
+    P4=$[2*$B-1],$[$A+$C-1]      # 2B,A+C
+    P5=$[2*$B-1],$[$A-1]         # 2B,A
+    P6=$[$B-1],0                 # B,0
+
+    echo "polygon $P1 $P2 $P3 $P4 $P5 $P6"
+    convert -size ${CW}x${CH}     xc:none -fill $fg -draw "polygon $P1 $P2 $P3 $P4 $P5 $P6" a.png
+    convert -size ${size}x${size} xc:none -gravity Center -draw "image over 0,0 0,0 'a.png'" b.png
+
+    if [[ -n $image ]]; then
+        convert -resize ${image_size}x${image_size} $image c.png
+        composite -compose Over -gravity Center c.png b.png $out
+    fi
+}
+
+# now use the function:
+main $*

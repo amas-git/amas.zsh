@@ -1,0 +1,72 @@
+#compdef emulator
+local ops
+
+
+
+_emulator() {
+    ops=(
+    '-system[<dir> read system image from <dir>]'
+    '-datadir[<dir> awrite user data into <dir>]'
+    '-kernel[use specific emulated kernel]:kernal image file'
+    '-ramdisk]<file> ramdisk image (default <system>/ramdisk.img]'
+    '-image[<file> system image (default <system>/system.img]'
+    '-initdata[<file>  initial data image (default <system>/userdata.img]'
+    '-data[<file> data image (default <datadir>/userdata-qemu.img]'
+    '-cache[<file> cache partition image (default is temporary file)]'
+    '-nocache[disable the cache partition]'
+    '-sdcard[<file> SD card image (default <system>/sdcard.img]'
+    '-wipe-data[reset the use data image (copy it from initdata)]'
+    '-skindir[<dir> search skins in <dir> (default <system>/skins)]'
+    '-skin[<file> select a given skin]'
+    '-noskin[don not use any emulator skin]'
+    '-netspeed[<speed> maximum network download/upload speeds]'
+    '-netdelay[<delay> network latency emulation]'
+    '-netfast[disable network shaping]'
+    '-trace[<name> enable code profiling (F9 to start)]'
+    '-show-kernel[display kernel messages]'
+    '-shell[enable root shell on current terminal]'
+    '-nojni[disable JNI checks in the Dalvik runtime]'
+    '-logcat[<tags> enable logcat output with given tags]'
+    '-noaudio[disable audio support]'
+    '-audio[<backend> use specific audio backend]'
+    '-audio-in[<backend> use specific audio input backend]'
+    '-audio-out[<backend> use specific audio output backend]'
+    '-raw-keys[disable Unicode keyboard reverse-mapping]'
+    '-radio[<device> redirect radio modem interface to character device]'
+    '-port[<port> TCP port that will be used for the console]'
+    '-onion[<image> use overlay PNG image over screen]'
+    '-onion-alpha[<%age> specify onion-skin translucency]'
+    '-onion-rotation[0|1|2|3  specify onion-skin rotation]:xxx:(0 1 2 3)'
+    '-scale[<scale> scale emulator window]'
+    '-dpi-device[<dpi> specify device resolution in dpi (default 165)]:dpi value:(165)'
+    '-http-proxy[<proxy> make TCP connections through a HTTP/HTTPS proxy]'
+    '-timezone[<timezone> use this timezone instead of the host default]'
+    '-dns-server[<servers> use this DNS server(s) in the emulated system]'
+    '-cpu-delay[ <cpudelay> throttle CPU emulation]'
+    '-no-boot-anim[disable animation for faster boot]'
+    '-no-window[disable graphical window display]'
+    '-version[display emulator version number]'
+    '-report-console[<socket> report console port to remote socket]'
+    '-gps[<device> redirect NMEA GPS to character device]'
+    '-keyset[<name> specify keyset file name]'
+    '-shell-serial[<device> specific character device for root shell]'
+    '-old-system[support old (pre 1.4) system images]'
+    '-nand-limits[<nlimits> enforce NAND/Flash read/write thresholds]'
+    '-qemu[pass arguments to qemu]'
+    '-qemu -h[display qemu help]'
+    '-help[print this help]'
+    '-help-[<option>print option-specific help]'
+    '-help-disk-images[about disk images]'
+    '-help-keys[supported key bindings]'
+    '-help-debug-tags[debug tags for -debug <tags>]'
+    '-help-char-devices[character <device> specification]'
+    '-help-environment[environment variables]'
+    '-help-keyset-file[key bindings configuration file]'
+    '-help-all[prints]'
+    )
+    _arguments -s \
+        $ops[@] \
+        ':xxx:_files'
+}
+
+_emulator "$@"

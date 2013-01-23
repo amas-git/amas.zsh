@@ -1,0 +1,16 @@
+function main() {
+    local _name="$1"
+    local _value="$2"
+    local _strings_xml="$3"
+
+    local _xpath="/resources/string[@name='$_name']"
+
+    local _orgin_value=$(xmlstarlet sel -t -m $_xpath -v . $_strings_xml)
+
+    # -P : 保留原XML的格式
+    # -L : 直接编辑XML文件
+    # -S : preserve non-significant spaces
+    xmlstarlet ed -P -S -u $_xpath -v "$_value" "$_strings_xml" 
+}
+
+main "$*"

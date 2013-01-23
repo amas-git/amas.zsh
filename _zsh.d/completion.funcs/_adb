@@ -1,0 +1,112 @@
+#compdef adb
+local ops
+
+_adb() {
+    ops=(
+        '-d[directs command to the only connected USB device]'
+        '-e[directs command to the only running emulator]'   
+        '-s[<serial number>directs command by serial number]'
+        '-p[<product name or path]'
+    )
+    _arguments -s \
+        $ops[@]   \
+        '*::adb command:_adb_command'
+}
+
+(( $+functions[_adb_command] )) ||
+_adb_command() {
+    local ret
+    adb_cmds=(
+        'push:<local> <remote> copy file/dir to device'
+        'pull:<remote> <local>copy file/dir from device'
+        'sync:<directory> copy host->device only if changed'
+        'shell:run remote shell interactively'
+        'emu:<command>run emulator console command'
+        'logcat:<filter-spec> View device log'
+        'forward:<local> <remote>'
+        'devices:list all connected devices'
+        'wait-for-device:block until device is online'
+        'start-server:ensure that there is a server running'
+        'kill-server:kill the server if it is running'
+        'get-state:prints: offline | bootloader | device'
+        'get-product:prints: <product-id>'
+        'get-serialno:prints: <serial-number>'
+        'status-window:continuously print device status for a specified device'
+        'remount:remounts the /system partition on the device read-write'
+        'help:show this help message'
+        'version:show version num'
+        'jdwp:list PIDs of processes hosting a JDWP transport'
+        'install:push this package file to the device and install it'
+        'uninstall:remove this app package from the device'
+        'ppp:Run PPP over US'
+    )
+
+
+    # dispatch function
+    if (( CURRENT == 1 )); then
+        _describe -t adb-command 'adb command' adb_cmds 
+    else
+        local cmd=${words[1]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:adb-$cmd"
+        _call_function ret _adb_command_$cmd || _message "no more arguments after $cmd"
+    fi
+    
+    return ret
+}
+
+_adb_command_install() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g \*.apk'
+    )
+    _arguments -s \
+        $ops[@]   
+    return 0
+}
+
+_adb_command_push() {
+    ops=(
+        ':apk file:_files -g \*'
+    )
+    _arguments -s \
+        $ops[@]
+}
+
+_adb_command_shell() {
+    _arguments -s \
+        '*:adb command:(ls logcat)'
+}
+
+
+
+
+_android_tools() {
+    if (( CURRENT > 2 )); then
+        local cmd=${words[2]}
+        curcontext="${curcontext%:*:*}:adb-$cmd"
+        (( CURRENT--))
+        shift words
+        _android_tools_adb_$cmd
+    else
+        local -a cmdlist=(shell install)
+        _describe -t adb-commands $cmdlist
+    fi
+}
+
+# adb shell
+_android_tools_adb_shell() {
+    ops=(
+        '-o[Specifies where to create the files/folders]'
+        '-i[install someplace else, like /mnt]:Root directory:_path_files -/'
+        '-infobox[use dialog to draw an info box]'
+        '-menu[confirm package installation with a menu]'
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:adb packages:_files -g \*.apk'
+}
+
+# init at latst
+_adb "$@"

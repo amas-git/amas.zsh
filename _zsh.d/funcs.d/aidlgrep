@@ -1,0 +1,1 @@
+find . -type f -name '*.aidl' -print0 | xargs -0 grep --color -n "$@" 

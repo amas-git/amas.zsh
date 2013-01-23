@@ -1,0 +1,7 @@
+#!/bin/zsh
+
+if [[ $LBUFFER = *.. ]]; then
+    LBUFFER+=/..
+else
+    LBUFFER+=.
+fi

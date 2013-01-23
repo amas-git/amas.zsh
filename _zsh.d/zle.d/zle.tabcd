@@ -1,0 +1,9 @@
+#!/bin/zsh
+
+if [[ -n $BUFFER ]] ; then
+    zle expand-or-complete
+else
+    BUFFER="cd "
+    zle end-of-line
+    zle expand-or-complete
+fi 

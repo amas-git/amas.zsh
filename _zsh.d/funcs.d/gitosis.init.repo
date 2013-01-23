@@ -1,0 +1,38 @@
+#!/bin/zsh
+# @author: amas
+# @email:  zhoujb.cn@gmail.com
+# @desc:   init a git repo for gitosis
+
+help() {
+    print "\
+create remote git repo host by gitosis.
+e.g:
+$ gitosis.init.repo git@192.168.81.212:ispend_ios.git
+"
+}
+
+[[ -z $argv ]] && help && return
+REPO_URL=$1
+
+functions usage() {
+    echo "$0 git@host:repo_name.git"
+}
+
+[[ -z $REPO_URL ]] && usage && exit -1
+
+REPO_NAME="${REPO_URL##*:}"
+
+[[ -d $REPO_NAME ]] && echo "[E]: dir '$REPO_NAME' existed!!!" && exit -1
+
+echo $REPO_NAME
+# create new repo
+mkdir $REPO_NAME
+pushd $REPO_NAME
+echo "init $REPO_NAME" >> README.rst
+git init
+git add -A && git commit -am "init repo"
+
+# push to remote
+git remote add origin $REPO_URL
+git push origin master:refs/heads/master
+popd

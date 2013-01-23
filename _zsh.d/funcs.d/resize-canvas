@@ -1,0 +1,18 @@
+#!/bin/zsh
+
+h=64
+w=64
+canvas_bg=none
+
+
+images=("$@")
+
+result_dir="convert_${h}x${w}"
+[[ -d $result_dir ]] || mkdir $result_dir
+
+for x in $images; do
+    result=$result_dir/$(basename $x)
+    echo "[convert]: $x >>> $result"
+    convert -size ${h}x${w} xc:$canvas_bg -gravity center -draw "image over 0,0 0,0 '"$x"'" $result 
+done
+
