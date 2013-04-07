@@ -63,6 +63,8 @@ function imports() {
     done
 }
 
+alias java.cn=java-classname
+alias java.pn=java-package-name
 function java-package-name() {
     help() {
         echo "$(basename $0) foo.bar.HelloWorld"

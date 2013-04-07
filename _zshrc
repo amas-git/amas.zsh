@@ -137,13 +137,15 @@ function autoload.d() {
     for x in $argv; do
         if [[ -d "$x" ]]; then
             +fpath "$x"
-            autoload "$x"/*(:t)
+            autoload -- "$x"/*(:t)
         fi
     done
 }
 
 #-------------------------------------------------------------- [ Zsh.PreludeFunctions ]
-autoload.d ~zshd/funcs.d ~self.fun
+autoload.d ~zshd/funcs.d ~self.fun 
+autoload.d ~zshd/libs/android 
+autoload.d ~zshd/libs/xml
 
 #-------------------------------------------------------------- [ Zsh.Zle.UserWidget ]
 autoload.d ~/.zsh.d/zle.d
@@ -184,3 +186,6 @@ import() {
 . ~/.zsh.d/module/libjava.zsh
 . ~/.zsh.d/module/libandroid.zsh
 . ~/.zsh.d/module/mix.zsh
+. ~/.zsh.d/module/textutils.zsh
+
+export EDITOR=vim

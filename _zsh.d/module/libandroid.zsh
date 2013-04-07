@@ -79,6 +79,9 @@ function android.xml.addActivity() {
     newElement /manifest/application -name activity "android:name=$name" $*
 }
 
+
+
+
 function android.xml.addStyle() {
     help() {
         print -u2 "cat style.xml | android.xml.addStyle -name <style-name> [-parent <parent-name>] -- attr1=value1 attr2=value2 ... attrN=valueN"
@@ -128,23 +131,11 @@ function android.xml.addString() {
     newElement /resources -name string -value "$text" "name=$name" $*
 }
 
-# cat AndroidManifest.xml | android.xml.addIntentFilter .service.TestReciver  action1 action2
-function android.xml.addIntentFilter() {
-    local componentName="$1"; shift
-    local xpath="/manifest/application/*[(local-name()='activity' or local-name()='receiver') and (@android:name='$componentName')]"
-    local xml
-    xml=$(newElement "$xpath" -name intent-filter)
-    for x in $argv; do
-        xml=$(echo "$xml" | newElement "$xpath/intent-filter" -name action android:name="$x")
-    done
-    echo $xml
-}
-
 function android.xml.addIntentFilter() {
     help() {
         print """\
 Add intent-filter to specify android component.
-$ cat AndroidManifest.xml | android.xml.addIntentFilter Activity  -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -d 'android:mimeType=text/*'
+$ cat AndroidManifest.xml | android.xml.addIntentFilter <component-name>  -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -d 'android:mimeType=text/*'
 optons: 
     -a: action-name
     -c: category-name
@@ -202,7 +193,7 @@ optons:
         [[ $x = "-d" ]] && continue
         manifest=$(echo "$manifest" | newElement "$targetIntentFilter" -name data ${=x})
     done
-    echo $manifest | xml ed -d "//@_id"
+    <<< "$manifest" | xml ed -d "//@_id"
 }
 
 function android.xml.addPermission() {
@@ -313,7 +304,7 @@ OPTIONS:
     print "$root"
 }
 
-function android.manifest.getPackageName() {
+function android.package() {
     android.manifest.getAttribute package
 }
 
@@ -346,7 +337,7 @@ function android.manifest.application.getAttribute() {
 
 # -> R
 function importR() {
-    R=$(android.manifest.getPackageName) && [[ -n $R ]] && R+=.R && print "import $R;"
+    R=$(android.package) && [[ -n $R ]] && R+=.R && print "import $R;"
 }
 
 
@@ -435,7 +426,7 @@ function mkpermissions() {
 alias mkmeta.writer=basewriter
 function mkmeta() {
     local manifest="$(find-android-project-home AndroidManifest.xml)";
-    local package=$(android.manifest.getPackageName)
+    local package=$(android.package)
     local name="$1"; shift
     local xml=
     xml=$(< $manifest)
@@ -451,7 +442,7 @@ function mkactivity() {
         echo "$mkactivity .ui.TestActivity"
     }
     local manifest="$(find-android-project-home AndroidManifest.xml)";
-    local package=$(android.manifest.getPackageName)
+    local package=$(android.package)
     local className="$1"; shift
     local xml=
     xml=$(< $manifest)
@@ -464,7 +455,6 @@ function mkactivity() {
     
     if [[ -z $(echo "$xml" | xpath.matched.refuse "/manifest/application/activity[@android:name='$className']") ]]; then
         @IF "Activity: '$className' existed, changed nothing"
-        #echo "$xml" | Android.xml.updateActivity "$className" $* | mkactivity.writer "$manifest"
         return -1
     else 
         echo "$xml" | android.xml.addActivity "$className" $* | mkactivity.writer "$manifest"
@@ -515,7 +505,7 @@ function addStaticLib() {
 alias mkreceiver.writer=basewriter
 function mkreceiver() {
     local manifest="$(find-android-project-home AndroidManifest.xml)";
-    local package=$(android.manifest.getPackageName)
+    local package=$(android.package)
     local className="$1"; shift
     local xml=
     xml=$(< $manifest)
@@ -530,27 +520,6 @@ function mkreceiver() {
         echo "$xml" | android.xml.addReceiver "$className" $* | mkreceiver.writer "$manifest"
         @IF "Receiver: '$className' added to '$manifest'"
     fi
-}
-
-alias mkintent-filter.writer=basewriter
-function mkintent-filter() {
-    local manifest="$(find-android-project-home AndroidManifest.xml)";
-    local package=$(android.manifest.getPackageName)
-    local className="$1"; shift
-    local xml=
-    xml=$(< $manifest)
-    if [[ -z $(echo "$xml" | xpath.matched.refuse "/manifest/application/*[@android:name='$className']") ]]; then
-        echo "$xml" | android.xml.addIntentFilter "$className" $* | mkintent-filter.writer "$manifest"
-        print -l $*
-    else
-        @IF "Intent-Filter: '' component not found."
-    fi
-}
-
-
-# 测试函数
-readstdout() {
-    echo $(<&0)
 }
 
 
@@ -612,59 +581,12 @@ $ android.hasCompontent [-f AndroidMenifest.xml]
     xpath.matched 
 }
 
-function android.activity() {
-    help() {
-        local code="${1:0}"
-        local msgs="$2"
-        local docs="""\
-$ android.activity add    <activity-name>
-$ android.activity delete <activity-name>
-"""
-
-        if [[ -n $msgs ]]; then
-            print -u2 "$msgs"
-        else
-            print -u2 "$docs"
-        fi
-        echo $code
-    }
-    local -A omap features
-    features[_]=""
-
-    local name subcmd manifest package xml
-    local -a opts flags CMDS
-    CMDS=(add delete)
-
-    function android.activity.add() {
-        name="$1" && [[ -z $name ]] && return $(help 2 "required activity name")
-        shift
-        zparseopts -A omap -K -- i:=omap
-        manifest=$(echo "$manifest" | newElement /manifest/application -name activity "android:name=$name")
-        echo $manifest
-    }
-
-    function android.activity.delete() {
-    }
-
-    #-- gaurds
-    [[ -z $argv     ]]         && return $(help)
-    subcmd="$1"; shift
-    manifest=$(project home AndroidManifest.xml)
-    [[ -z $manifest ]]         && return $(help 2 "AndroidManifest.xml not found")
-    manifest="$(< $manifest)"
-    [[ -z $CMDS[(r)$subcmd] ]] && return $(help 1 "Invalidate command '$subcmd'")
-
-    #-- dispatcher
-    android.activity.$subcmd $*
-    return $?
-}
-
 function android.component() {
     help() {
         print -u2 """\
-$ android.component add  [-a|-r|-s|-p] <component-name>
-$ android.component delete <component-name>
-$ android.component list [-a|-r|-s|-p] [-v]
+$ android.component mk [-a|-r|-s|-p] <component-name> attr1=value1 attr=value2
+$ android.component rm <component-name>
+$ android.component ls [-a|-r|-s|-p] [-v]
 
 OPTIONS:
    -a : activity
@@ -675,33 +597,51 @@ OPTIONS:
     }
     
     
-    local manifest component_type
+    local manifest component_type name
     local -a opts CMDS
-    CMDS=(add delete list)
+    CMDS=(mk rm ls)
 
-    android.component.list() {
-        manifest=$(project home AndroidManifest.xml)
-        zparseopts -K -- a=opts r=opts s=opts p=opts v=opts
-
-        if   [[ -n $opts[(r)-a] ]]; then
-            component_type=activity
-        elif [[ -n $opts[(r)-r] ]]; then
-            component_type=receiver
-        elif [[ -n $opts[(r)-s] ]]; then
-            component_type=service
-        elif [[ -n $opts[(r)-p] ]]; then
-            component_type=provider
-        else
-            component_type='*'
-        fi
-
+    function android.component.ls() {
         xml sel -t -m manifest/application/${component_type} -v @android:name -o ' ' $manifest
     }
+    
+    function android.component.mk() {
+        # Component name
+        [[ -z $argv ]] && return -1
+        local name=$1 && shift
 
+        # TODO: avoid duplicated component
+        <<< $(<$manifest) | newElement /manifest/application -name $component_type "android:name=$name" $*
+    }
+
+    function android.component.rm() {
+    
+    }
+    
+
+    # dispatcher
     [[ -z $argv             ]] && help && return
     local subcmd="$1"; shift
     [[ -z $CMDS[(r)$subcmd] ]] && help && return
-    android.component.$subcmd $*
+
+    # AndroidManifest.xml
+    manifest=$(project home AndroidManifest.xml)
+    zparseopts -D -K -- a=opts r=opts s=opts p=opts v=opts
+
+    # Component type
+    if   [[ -n $opts[(r)-a] ]]; then
+        component_type=activity
+    elif [[ -n $opts[(r)-r] ]]; then
+        component_type=receiver
+    elif [[ -n $opts[(r)-s] ]]; then
+        component_type=service
+    elif [[ -n $opts[(r)-p] ]]; then
+        component_type=provider
+    else
+        component_type='*'
+    fi
+    
+    android.component.$subcmd $name $*
 }
 
 function project() {
@@ -711,17 +651,15 @@ $ project home
 """
     }
     
-    project.home() {
+    function project.home() {
         local dir=$(pwd)
         local subdir="/$*"
-        
         while [[ $dir != / ]]; do
             [[ -f "$dir/AndroidManifest.xml" && -d "$dir/src" && -d "$dir/res" ]] && break
             dir=$(dirname $dir)
         done
-        
         [[ $dir == "/" ]] && return -1
-        print "$dir$subdir"
+        echo "$dir$subdir"
     }
 
     [[ -z $argv ]] && help && return
@@ -730,44 +668,45 @@ $ project home
     project.$subcmd $*
 }
 
-# 1. 有一批函数在特定上下文中才能使用
-# zcontext=":android,java,c:/home/amas/projectroot:"
-# 2. 特定的上下文中可以使用特定的模板库
-# 3. 
+function android.class() {
+    local class=${1:=$CLASS}
+    local package=$(android.package)
+    
+    # full class name
+    [[ $class[1] == '.' ]] && class=${package}${class}
+    <<< $(project home src/${${class#.}//.//}.java)
+}
 
+function android.XML() {
+    local id=${1:=unknown}
+    <<< $(project home res/xml/${id}.xml)
+}
 
-#---------------------------------[ Highlevel Function ]
+function android.layout() {
+    local id=${1:=unknown}
+    echo $(project home res/layout/${id}.xml)
+}
 
-function activity_() {
-    help() {
-        print """\
-$ actvity activity-name
+function android.fullclass() {
+    local class=$1
+    local package=$(android.package)
+    if [[ "$class[1]" == "." ]]; then
+        echo $package$class
+    else
+        echo $class
+    fi    
+}
 
-OPTIONS:
-    -name:      activity name (usually class name or short class name)
-    -label:     activity label
-    -baseclass: base class name
-    -menu:      menus spec, see android.menu
-""" 
-    }
-
-
-    local -a opts
-    local -A menus 
-    local -A omap
-    zparseopts -A opts -K -D -- name:=omap menu+:=menus
-
-    @IF "argv: $argv"
-    @IF "opts: $opts"
-    @IF "omap: $omap"
-    @IF "menu: $menus"
-    # activity attributes
-
-    # actionbar
-
-    # menus or actionitem
-
-    # contentview
-
-    # fragments
+function +android() {
+    M=
+    R=
+    P=
+    LAYOUT=
+    PROJECT_HOME=
+    isAndroidProject || return
+    PROJECT_HOME=$(project home)
+    LAYOUT=${PROJECT_HOME}res/layout/
+    P=$(android.package)
+    R=${P}.R
+    M=${PROJECT_HOME}AndroidManifest.xml
 }
