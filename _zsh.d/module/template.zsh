@@ -650,6 +650,7 @@ function f() {
     function writer.file() {
         # TODO: append writer support ???
         local file="$1"
+        [[ $file == @stdout ]] && <<< ${(F)content} &&  content=() && return
         [[ -z $content ]] && @EF "没有输出内容" && return
         [[ -z $file    ]] && @EF "没有输出文件" && return
         local parent=$(dirname $file)
@@ -679,7 +680,23 @@ function f() {
 }
 
 
-ZHOME=~sandbox/ztemplate.git/template
+function map() {
+    (   
+        _t=$1 && shift
+        _array=()
+        function _() {
+          _array+=${(e)_t}
+        }
+
+        for x in $argv; do
+            _ $x
+        done
+        print ${_array}
+    )
+}
+
+
+#ZHOME=~sandbox/ztemplate.git/template
 function ztemplate() {
     local selected
     

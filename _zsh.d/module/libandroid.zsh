@@ -584,9 +584,10 @@ $ android.hasCompontent [-f AndroidMenifest.xml]
 function android.component() {
     help() {
         print -u2 """\
-$ android.component mk [-a|-r|-s|-p] <component-name> attr1=value1 attr=value2
+$ android.component mk [-a|-r|-s|-p] [-A] '' <component-name> attr1=value1 attr=value2
 $ android.component rm <component-name>
 $ android.component ls [-a|-r|-s|-p] [-v]
+$ android.component add-action <component-name> action1 action2 ...
 
 OPTIONS:
    -a : activity
@@ -611,7 +612,11 @@ OPTIONS:
         local name=$1 && shift
 
         # TODO: avoid duplicated component
-        <<< $(<$manifest) | newElement /manifest/application -name $component_type "android:name=$name" $*
+        <"$manifest" newElement /manifest/application -name $component_type "android:name=$name" $*
+    }
+
+    function android.component.add-action {
+
     }
 
     function android.component.rm() {
@@ -698,6 +703,17 @@ function android.fullclass() {
 }
 
 function +android() {
+    help() {
+        print -u2 "
+在android工程目录下执行此命令，将引入一些常用的变量，包括:
+ * M : AndroidManifest.xml文件的路径('$M')
+ * P : 应用的包名('$P')
+ * R : R的完整类名('$R')
+ * PROJECT_HOME: 工程路径('$PROJECT_HOME')
+ * LAYOUT: layout文件目录('$LAYOUT')
+"
+    }
+    
     M=
     R=
     P=
@@ -709,4 +725,6 @@ function +android() {
     P=$(android.package)
     R=${P}.R
     M=${PROJECT_HOME}AndroidManifest.xml
+
+    help
 }
