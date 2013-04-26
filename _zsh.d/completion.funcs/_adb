@@ -55,6 +55,7 @@ _adb_command() {
     return ret
 }
 
+# adb install
 _adb_command_install() {
     ops=(
         '(-r)-l+[forward-lock the app]'
@@ -66,6 +67,7 @@ _adb_command_install() {
     return 0
 }
 
+# adb push
 _adb_command_push() {
     ops=(
         ':apk file:_files -g \*'
@@ -74,26 +76,51 @@ _adb_command_push() {
         $ops[@]
 }
 
+# adb shell
 _adb_command_shell() {
-    _arguments -s \
-        '*:adb command:(ls logcat)'
-}
-
-
-
-
-_android_tools() {
-    if (( CURRENT > 2 )); then
-        local cmd=${words[2]}
-        curcontext="${curcontext%:*:*}:adb-$cmd"
-        (( CURRENT--))
-        shift words
-        _android_tools_adb_$cmd
+    adb_shell_cmds=(
+        'am:am'
+        'pm:pm'
+    )
+    # _arguments -s \
+    #     '*:adb command:(ls logcat)'
+    if (( CURRENT == 2 )); then
+        _describe -t adb-shell-command 'adb shell command' adb_shell_cmds 
     else
-        local -a cmdlist=(shell install)
-        _describe -t adb-commands $cmdlist
-    fi
+        local cmd=${words[2]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:adb-shell-$cmd"
+        _call_function ret _adb_shell_command_$cmd || _message "no more arguments after $cmd"
+    fi 
 }
+
+
+# adb shell am
+_adb_shell_command_am() {
+    ops=(
+        '-o[Specifies where to create the files/folders]'
+        '-i[install someplace else, like /mnt]:Root directory:_path_files -/'
+        '-infobox[use dialog to draw an info box]'
+        '-menu[confirm package installation with a menu]'
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:adb packages:_files -g \*.apk'
+}
+
+
+# _android_tools() {
+#     if (( CURRENT > 2 )); then
+#         local cmd=${words[2]}
+#         curcontext="${curcontext%:*:*}:adb-$cmd"
+#         (( CURRENT--))
+#         shift words
+#         _android_tools_adb_$cmd
+#     else
+#         local -a cmdlist=(shell install)
+#         _describe -t adb-commands $cmdlist
+#     fi
+# }
 
 # adb shell
 _android_tools_adb_shell() {
