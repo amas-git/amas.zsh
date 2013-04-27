@@ -97,17 +97,95 @@ _adb_command_shell() {
 
 # adb shell am
 _adb_shell_command_am() {
+    local ret
     ops=(
         '-o[Specifies where to create the files/folders]'
         '-i[install someplace else, like /mnt]:Root directory:_path_files -/'
         '-infobox[use dialog to draw an info box]'
         '-menu[confirm package installation with a menu]'
     )
-    _arguments -s \
-        $ops[@] \
-        '*:adb packages:_files -g \*.apk'
+ 
+    adb_shell_am_cmds=(
+        'start:start with intent'
+        'startservice:start service with intent'
+        'force-stop:force stop everything associated with <PACKAGE>'
+        'kill:kill all processes associated with <PACKAGE>. (Only kills. processes that are safe to kill)'
+        'kill-all:kill all background processes'
+        'broadcast:send broadcast intent'
+        'instrument:start an Instrumentation'
+        'profile:start and stop profiler on a process'
+        'dumpheap:dump the heap of a process'
+        'set-debug-app:set application <PACKAGE> to debug'
+        'clear-debug-app:clear the previously set-debug-app'
+        'monitor:start monitoring for crashes or ANRs'
+        'screen-compat:control screen compatibility mode of <PACKAGE>'
+        'display-size:override display size'
+        'to-uri:print the given Intent specification as a URI'
+        'to-intent-uri:print the given Intent specification as an intent: URI'
+    )
+
+    if (( CURRENT == 3 )); then
+        _describe -t adb-shell-am 'adb shell am' adb_shell_am_cmds
+    else
+        local cmd=${words[3]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:adb-shell-am-$cmd"
+        _call_function ret _adb_shell_am_$cmd || _message "no more arguments after $cmd"
+    fi
+    return ret
 }
 
+_adb_shell_am_start() {
+    ops=(
+        '-D[enable debugging]'
+        '--start-profiler[start profiler and send results to <FILE>]'
+        '-P[like above, but profiling stops when app goes idle]'
+        '-R[repeat the activity launch <COUNT> times. Prior to each repeat, the top activity will be finished]'
+        '-S[force stop the target app before starting the activity]'
+        '-W[wait for launch to complete]'
+        '--opengl-trace[enable tracing of OpenGL functions]'
+        ':apk file:_files -g \*.apk'
+    )
+    _arguments -s \
+        $ops[@]   
+    return 0
+}
+
+_adb_shell_am_startservice() {
+
+}
+
+_adb_shell_am_force-stop() {
+
+}
+
+_adb_shell_am_kill() {
+}
+
+_adb_shell_am_kill-all() {
+}
+_adb_shell_am_broadcast() {
+}
+_adb_shell_am_instrument() {
+}
+_adb_shell_am_profile() {
+}
+_adb_shell_am_dumpheap() {
+}
+_adb_shell_am_set-debug-app() {
+}
+_adb_shell_am_clear-debug-app() {
+}
+_adb_shell_am_monitor() {
+}
+_adb_shell_am_screen-compat() {
+}
+_adb_shell_am_display-size() {
+}
+_adb_shell_am_to-uri() {
+}
+_adb_shell_am_to-intent-uri() {
+}
 
 # _android_tools() {
 #     if (( CURRENT > 2 )); then
