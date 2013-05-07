@@ -137,17 +137,24 @@ _adb_shell_command_am() {
 
 _adb_shell_am_start() {
     ops=(
-        '-D[enable debugging]'
-        '--start-profiler[start profiler and send results to <FILE>]'
-        '-P[like above, but profiling stops when app goes idle]'
-        '-R[repeat the activity launch <COUNT> times. Prior to each repeat, the top activity will be finished]'
-        '-S[force stop the target app before starting the activity]'
-        '-W[wait for launch to complete]'
-        '--opengl-trace[enable tracing of OpenGL functions]'
-        ':apk file:_files -g \*.apk'
+        ':This is first arguments:_files -g \*.apk'
+        # '-D[enable debugging]'
+        # '--start-profiler[start profiler and send results to <FILE>]'
+        # '-P[like above, but profiling stops when app goes idle]'
+        # '-R[repeat the activity launch <COUNT> times. Prior to each repeat, the top activity will be finished]'
+        # '-S[force stop the target app before starting the activity]'
+        # '-W[wait for launch to complete]'
+        # '--opengl-trace[enable tracing of OpenGL functions]'
+        # ':apk file:_files -g \*.apk'
     )
-    _arguments -s \
-        $ops[@]   
+    # _arguments -s \
+    #     $ops[@]  
+    
+    _arguments \ 
+    -a\ 
+    -c\ 
+    -d\ 
+    ':arg:(x2 y2)'
     return 0
 }
 
@@ -156,7 +163,11 @@ _adb_shell_am_startservice() {
 }
 
 _adb_shell_am_force-stop() {
-
+    # echo xxx
+    # _arguments -C -s  '-D[enable debugging]' ':host:_hosts' ':port:_ports' && return 0
+     # _arguments -C -s '*:file:_files'
+     _arguments -C -s '*:host:_hosts' 
+     return 0
 }
 
 _adb_shell_am_kill() {

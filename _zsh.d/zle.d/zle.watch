@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+[[ -z $BUFFER ]] && zle up-history
+[[ $BUFFER != watch\ * ]] && BUFFER="watch -n 0.5 $BUFFER"
+#光标移动到行末
+zle end-of-line
