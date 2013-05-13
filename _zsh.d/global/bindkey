@@ -32,4 +32,6 @@ bindkey "^[l"    zle.ls                     # <M-L>
 bindkey .        zle.lazy-dot 
 bindkey "^[[13~" zle.run-last-command
 bindkey "\C-p"   history-incremental-pattern-search-backward
-bindkey "\C-\b"  zle.back-to-parent
+#bindkey "\C-\b"  zle.back-to-parent
+bindkey "^[OP"   run-help
+bindkey "^[[15"  zle.watch
