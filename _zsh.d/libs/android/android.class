@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+function help() {
+    print -- "\$ $1 [.]foo.bar.Class"
+}
+
+#--------------------------------------------------[ body ]
+[[ -z $* ]] && help $(basename $0) && return
+
+local class=${1:=$CLASS}
+local package=$(android.package)
+    
+# full class name
+[[ $class[1] == '.' ]] && class=${package}${class}
+<<< $(project home src/${${class#.}//.//}.java)

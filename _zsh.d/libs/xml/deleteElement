@@ -1,0 +1,16 @@
+#!/bin/zsh
+
+function main() {
+    help() {
+        print "delete specify element."
+        print "$(basename $0) xpath < file" 
+    }
+
+    echo $#
+    (( $# == 0 )) && help && return
+
+    local xpath="$1" ; shift
+    echo $(<&0) | xmlstarlet ed -d "$xpath"
+}
+
+main $*

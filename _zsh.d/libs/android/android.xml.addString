@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+function main() {
+    local name="$1" ; shift
+    local text="$2" ; shift
+
+    newElement /resources -name string -value "$text" "name=$name" $*
+}
+
+main $*

@@ -1,0 +1,72 @@
+#!/bin/zsh
+
+function main() {
+    help() {
+        print -u2 """\
+$ android.component mk [-a|-r|-s|-p] [-A] '' <component-name> attr1=value1 attr=value2
+$ android.component rm <component-name>
+$ android.component ls [-a|-r|-s|-p] [-v]
+$ android.component add-action <component-name> action1 action2 ...
+
+OPTIONS:
+   -a : activity
+   -r : receiver
+   -s : service
+   -p : provider
+"""
+    }
+    
+    
+    local manifest component_type name
+    local -a opts CMDS
+    CMDS=(mk rm ls)
+
+    function android.component.ls() {
+        xml sel -t -m manifest/application/${component_type} -v @android:name -o ' ' $manifest
+    }
+    
+    function android.component.mk() {
+        # Component name
+        [[ -z $argv ]] && return -1
+        local name=$1 && shift
+
+        # TODO: avoid duplicated component
+        <"$manifest" newElement /manifest/application -name $component_type "android:name=$name" $*
+    }
+
+    function android.component.add-action {
+
+    }
+
+    function android.component.rm() {
+    
+    }
+    
+
+    # dispatcher
+    [[ -z $argv             ]] && help && return
+    local subcmd="$1"; shift
+    [[ -z $CMDS[(r)$subcmd] ]] && help && return
+
+    # AndroidManifest.xml
+    manifest=$(project home AndroidManifest.xml)
+    zparseopts -D -K -- a=opts r=opts s=opts p=opts v=opts
+
+    # Component type
+    if   [[ -n $opts[(r)-a] ]]; then
+        component_type=activity
+    elif [[ -n $opts[(r)-r] ]]; then
+        component_type=receiver
+    elif [[ -n $opts[(r)-s] ]]; then
+        component_type=service
+    elif [[ -n $opts[(r)-p] ]]; then
+        component_type=provider
+    else
+        component_type='*'
+    fi
+    
+    android.component.$subcmd $name $*
+}
+
+
+main $*

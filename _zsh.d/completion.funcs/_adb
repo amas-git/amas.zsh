@@ -1,4 +1,4 @@
-#compdef adb
+x#compdef adb
 local ops
 
 _adb() {
@@ -155,6 +155,7 @@ _adb_shell_am_startservice() {
 
 }
 
+# am force-stop <package>
 _adb_shell_am_force-stop() {
 
 }
@@ -173,10 +174,36 @@ _adb_shell_am_profile() {
 _adb_shell_am_dumpheap() {
 }
 _adb_shell_am_set-debug-app() {
+    ops=(
+        '-n[dump native heap instead of managed heap]'
+        ':apk file:_files -g \*.apk'
+    )
+    _arguments -s \
+        $ops[@]   
+    return 0
 }
+
+# am set-debug-app <package>
 _adb_shell_am_clear-debug-app() {
+    ops=(
+        '-w[wait for debugger when application starts]'
+        '--persistent[retain this value]'
+        ':apk file:_files -g \*.apk'
+    )
+    _arguments -s \
+        $ops[@]   
+    return 0
 }
+
+# am monitor: start monitoring for crashes or ANRs.
 _adb_shell_am_monitor() {
+    ops=(
+        '--gdb[start gdbserv on the given port at crash/ANR]'
+        ':apk file:_files -g \*.apk'
+    )
+    _arguments -s \
+        $ops[@]   
+    return 0
 }
 _adb_shell_am_screen-compat() {
 }

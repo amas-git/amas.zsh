@@ -1,0 +1,12 @@
+#!/bin/zsh
+
+function main{
+    help() {
+        echo "xpath.matched.refuse"
+        echo "如果匹配xpath,则输出空，否则输出整个文档"
+    }
+    local xpath="$1"
+    echo "$(<&0)" | xmlstarlet sel -E "utf-8" -I -D -t -i "$xpath" -o "" --else -c "/"
+}
+
+main $*

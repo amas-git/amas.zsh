@@ -1,0 +1,12 @@
+local -A maps
+maps=()
+
+#adb shell ps |  awk '{print "pid=$2 name=$9"}'
+
+local -a pids
+pids=($(adb shell ps | awk '{print $2}'))
+
+for x in $pids; do
+    echo "pid=$x" 
+    echo " cmdline='$(adb shell cat /proc/$x/cmdline)'"
+done

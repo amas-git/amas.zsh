@@ -1,0 +1,67 @@
+#!/bin/zsh
+
+function main() {
+    help() {
+        print """\
+$ android.menu -n help -t 帮助 -n search 
+OPTIONS:
+    -m : menu id
+    -i : menu icon
+    -t : menu title
+    -I : same with '-a ifRoom'   but take effect all menu items
+    -N : same with '-a never'    but take effect all menu items
+    -W : same with '-a withText' but take effect all menu items
+    -A : same with '-a always'   but take effect all menu items
+    -a : menu show as action, can override  option '-A|-N|w|I'
+       - ifRoom
+       - always
+       - withText
+       - never 
+       - collapseActionView
+    -p : prefix of menu id
+    -o <file> : save menu to file
+    -O <id>   : save menu to 'res/menu/${id}.xml'
+"""
+    }
+    local -a opts menus action
+    zparseopts -K -- m+:=menus i+:=menus t+:=menus a+:=menus h=opts A=opts W=opts N=opts I=opts
+    if [[ $? != 0 ]] || [[ -n $opts[(r)-h] ] || $# == 0]; then
+        help
+        return -1
+    fi
+
+    local root='<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+</menu>
+'
+    local icon title a etc x id
+
+    [[ -n $opts[(r)-A] ]] && action+=always
+    [[ -n $opts[(r)-N] ]] && action+=never
+    [[ -n $opts[(r)-W] ]] && action+=withText
+    [[ -n $opts[(r)-I] ]] && action+=ifRoom
+    
+    [[ -n $action ]] && etc+="android:showAsAction=${(j:|:)action}"
+
+    local -i i
+    for ((i=1; i<=$#menus; ++i )); do
+        x=$menus[i]
+        if [[ "$x" -eq "-m" ]]; then
+            id="$menus[i+1]"
+            root=$(echo "$root" | newElement  /menu -name item android:id="@+id/$id" android:title="$id" $etc)
+        elif [[ $x -eq "-t" ]]; then
+            title="$menus[i+1]"
+            root=$(echo "$root" | updateElement "/menu/item[@android:id='$id']" android:title="$title")
+        elif [[ $x -eq "-a" ]]; then
+            a="$menus[i+1]"
+            root=$(echo "$root" | updateElement "/menu/item[@android:id='$id']" android:showAsAction="$a")
+        elif [[ $x -eq "-i" ]]; then
+            # TODO: generate icon resource
+        fi
+        (( i++ ))
+    done
+
+    print "$root"
+}
+
+main $*

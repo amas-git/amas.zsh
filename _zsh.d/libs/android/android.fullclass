@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+function main() {
+    local class=$1
+    local package=$(android.package)
+    if [[ "$class[1]" == "." ]]; then
+        echo $package$class
+    else
+        echo $class
+    fi    
+}
+
+main $*

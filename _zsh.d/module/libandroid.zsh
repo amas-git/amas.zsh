@@ -1,26 +1,8 @@
 #!/bin/zsh
 alias android.res.layout='echo $(find-android-project-home res/layout)'
 alias android.src='echo $(find-android-project-home src)'
-alias android.mkclass='mkclass -rf android.src'
-# 列出id与类名的对应关系
-alias android.xml.listClassById="xmlstarlet sel -t -m \"//*[@android:id!='']\"  -v '@android:id' -o ' ' -c 'name(.)' -o ' '"
-alias android.xml.listMenuItemId="xmlstarlet sel -t -m \"//item[@android:id!='']\" -v '@android:id' -o ' '"
-alias android.xml.listId="xmlstarlet sel -t -m \"//*[@android:id!='']\" -v '@android:id' -o ' '"
-# 生成一个activity需要实体类+AndroidMenimest.xml中添加对应标签
-alias android.output.activity='android.mkclass -class $CLASS -body "$*" && mkactivity $CLASS'
-alias android.output.class='android.mkclass -class $CLASS -body "$*"'
-alias stop-if-not-android-project='[[ -z $(find-android-project-home) ]] && return -1'
 
-android.layout.listViewId() {
-    local xml="$1"
-    local class=${2:=*}
-    if [[ -f $xml ]]; then
-    else
-        @EF "xml file not found : '$xml'" 
-        return -1
-    fi
-    xmlstarlet sel -t -m "//${class}[@android:id!='']" -v '@android:id' -o ' ' "$xml"
-}
+
 
 android.output.drawableXml() {
     local -L fname="$1"
@@ -79,41 +61,6 @@ function android.xml.addActivity() {
     newElement /manifest/application -name activity "android:name=$name" $*
 }
 
-
-
-
-function android.xml.addStyle() {
-    help() {
-        print -u2 "cat style.xml | android.xml.addStyle -name <style-name> [-parent <parent-name>] -- attr1=value1 attr2=value2 ... attrN=valueN"
-        # print -u2 " -f : 如果style已经存在，则替换之"
-    }
-    local -A opts
-    zparseopts -A opts -K -D -- name:=opts parent:=opts -f:=flags
-    local name=$opts[-name]     && [[ -z $name   ]] && return -1
-    local parent=$opts[-parent] && [[ -n $parent ]] && parent="parent=$parent"
-    local xpathGuard="/resources/style[@name='$name']"
-    local xml                   
-    xml=$(<&0)                  && [[ -z $xml    ]] && return 0
-
-    if [[ $(echo $xml | xpath.matched $xpathGuard) == true ]]; then
-        @DF "remove: $xpathGuard"
-        xml=$(echo $xml | deleteElement "$xpathGuard")
-        # @DF "$xml"
-        # return 0
-    fi
-
-    # safe add style element
-    xml=$(echo "$xml" | newElement /resources -name style "name=$name" $parent)
-
-    # add style/item element
-    local pair
-    for item in $argv; do
-        pair=(${(s:=:)item})
-        xml=$(echo "$xml" | newElement $xpathGuard -name item -value "$pair[2]" -- "name=$pair[1]")
-    done
-    echo $xml
-}
-
 function android.xml.addReceiver() {
     local name="$1"; shift
     newElement /manifest/application -name receiver "android:name=$name" $*
@@ -124,77 +71,6 @@ function android.xml.addService() {
     newElement /manifest/application -name service "android:name=$name" $*
 }
 
-function android.xml.addString() {
-    local name="$1" 
-    local text="$2"
-    shift;shift
-    newElement /resources -name string -value "$text" "name=$name" $*
-}
-
-function android.xml.addIntentFilter() {
-    help() {
-        print """\
-Add intent-filter to specify android component.
-$ cat AndroidManifest.xml | android.xml.addIntentFilter <component-name>  -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -d 'android:mimeType=text/*'
-optons: 
-    -a: action-name
-    -c: category-name
-    -d: data 'attr1=value1 attr2=value2 ... attr3=value3'
-        attr should be one of:
-        - android:mimeType
-        - android:host
-        - android:scheme
-        - android:port
-        - android:path
-        - android:pathPrefix
-        - android:pathPattern
-    -D: as main entrance of application. (equivalent '-a android.intent.action.MAIN  -c android.intent.category.LAUNCHER')
-    -h: show this help
-"""
-    }
-
-    local -a opts actions categorys dataspecs
-    [[ -z $argv || $argv = '-h' ]] && help && return
-    local componentName="$1"; shift
-    local target="/manifest/application/*[(local-name()='activity' or local-name()='receiver') and (@android:name='$componentName')]"
-    local targetIntentFilter manifest elemId
-
-    zparseopts -K -- a+:=actions c+:=categorys d+:=dataspecs h=opts D=opts 
-    [[ -n $opts[(r)-h] ]] && help && return
-
-    @IF "actions  : $actions"
-    @IF "categorys: $categorys"
-    @IF "dataspecs: $dataspecs"
-    @IF "opts     : $opts"
-
-    elemId=$(uuid)
-    targetIntentFilter="//intent-filter[@_id='$elemId']"
-    # +element: intent-filter
-    manifest=$(newElement "$target" -name intent-filter _id=$elemId)
-    
-    # handle single options
-    [[ -n $opts[(r)-D] ]] && actions+=(-a "android.intent.action.MAIN") && categorys+=(-c "android.intent.category.LAUNCHER")
-    
-    # +element: action
-    for x in ${(u)actions}; do
-        [[ $x = "-a" ]] && continue
-        manifest=$(echo "$manifest" | newElement "$targetIntentFilter" -name action android:name="$x")
-    done
-
-    # +element: category
-    for x in ${(u)categorys}; do
-        [[ $x = "-c" ]] && continue
-        manifest=$(echo "$manifest" | newElement "$targetIntentFilter" -name category android:name="$x")
-    done
-
-    # +element: data
-    # FIXME(amas): for data spec, the same attributes with different order may case output duplicate attributes
-    for x in ${(u)dataspecs}; do
-        [[ $x = "-d" ]] && continue
-        manifest=$(echo "$manifest" | newElement "$targetIntentFilter" -name data ${=x})
-    done
-    <<< "$manifest" | xml ed -d "//@_id"
-}
 
 function android.xml.addPermission() {
     local name="$1"
@@ -240,69 +116,6 @@ function android.xml.getIds() {
     echo "$(<&0)" | xml sel -t -m "//*[@android:id!='']" -v @android:id -o ' '
 }
 
-function android.menu() {
-    help() {
-        print """\
-$ android.menu -n help -t 帮助 -n search 
-OPTIONS:
-    -m : menu id
-    -i : menu icon
-    -t : menu title
-    -I : same with '-a ifRoom'   but take effect all menu items
-    -N : same with '-a never'    but take effect all menu items
-    -W : same with '-a withText' but take effect all menu items
-    -A : same with '-a always'   but take effect all menu items
-    -a : menu show as action, can override  option '-A|-N|w|I'
-       - ifRoom
-       - always
-       - withText
-       - never 
-       - collapseActionView
-    -p : prefix of menu id
-    -o <file> : save menu to file
-    -O <id>   : save menu to 'res/menu/${id}.xml'
-"""
-    }
-    local -a opts menus action
-    zparseopts -K -- m+:=menus i+:=menus t+:=menus a+:=menus h=opts A=opts W=opts N=opts I=opts
-    if [[ $? != 0 ]] || [[ -n $opts[(r)-h] ]]; then
-        help
-        return -1
-    fi
-
-    local root='<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-</menu>
-'
-    local icon title a etc x id
-
-    [[ -n $opts[(r)-A] ]] && action+=always
-    [[ -n $opts[(r)-N] ]] && action+=never
-    [[ -n $opts[(r)-W] ]] && action+=withText
-    [[ -n $opts[(r)-I] ]] && action+=ifRoom
-    
-    [[ -n $action ]] && etc+="android:showAsAction=${(j:|:)action}"
-
-    local -i i
-    for ((i=1; i<=$#menus; ++i )); do
-        x=$menus[i]
-        if [[ "$x" -eq "-m" ]]; then
-            id="$menus[i+1]"
-            root=$(echo "$root" | newElement  /menu -name item android:id="@+id/$id" android:title="$id" $etc)
-        elif [[ $x -eq "-t" ]]; then
-            title="$menus[i+1]"
-            root=$(echo "$root" | updateElement "/menu/item[@android:id='$id']" android:title="$title")
-        elif [[ $x -eq "-a" ]]; then
-            a="$menus[i+1]"
-            root=$(echo "$root" | updateElement "/menu/item[@android:id='$id']" android:showAsAction="$a")
-        elif [[ $x -eq "-i" ]]; then
-            # TODO: generate icon resource
-        fi
-        (( i++ ))
-    done
-
-    print "$root"
-}
 
 function android.package() {
     android.manifest.getAttribute package
@@ -581,73 +394,6 @@ $ android.hasCompontent [-f AndroidMenifest.xml]
     xpath.matched 
 }
 
-function android.component() {
-    help() {
-        print -u2 """\
-$ android.component mk [-a|-r|-s|-p] [-A] '' <component-name> attr1=value1 attr=value2
-$ android.component rm <component-name>
-$ android.component ls [-a|-r|-s|-p] [-v]
-$ android.component add-action <component-name> action1 action2 ...
-
-OPTIONS:
-   -a : activity
-   -r : receiver
-   -s : service
-   -p : provider
-"""
-    }
-    
-    
-    local manifest component_type name
-    local -a opts CMDS
-    CMDS=(mk rm ls)
-
-    function android.component.ls() {
-        xml sel -t -m manifest/application/${component_type} -v @android:name -o ' ' $manifest
-    }
-    
-    function android.component.mk() {
-        # Component name
-        [[ -z $argv ]] && return -1
-        local name=$1 && shift
-
-        # TODO: avoid duplicated component
-        <"$manifest" newElement /manifest/application -name $component_type "android:name=$name" $*
-    }
-
-    function android.component.add-action {
-
-    }
-
-    function android.component.rm() {
-    
-    }
-    
-
-    # dispatcher
-    [[ -z $argv             ]] && help && return
-    local subcmd="$1"; shift
-    [[ -z $CMDS[(r)$subcmd] ]] && help && return
-
-    # AndroidManifest.xml
-    manifest=$(project home AndroidManifest.xml)
-    zparseopts -D -K -- a=opts r=opts s=opts p=opts v=opts
-
-    # Component type
-    if   [[ -n $opts[(r)-a] ]]; then
-        component_type=activity
-    elif [[ -n $opts[(r)-r] ]]; then
-        component_type=receiver
-    elif [[ -n $opts[(r)-s] ]]; then
-        component_type=service
-    elif [[ -n $opts[(r)-p] ]]; then
-        component_type=provider
-    else
-        component_type='*'
-    fi
-    
-    android.component.$subcmd $name $*
-}
 
 function project() {
     help() {
@@ -673,14 +419,7 @@ $ project home
     project.$subcmd $*
 }
 
-function android.class() {
-    local class=${1:=$CLASS}
-    local package=$(android.package)
-    
-    # full class name
-    [[ $class[1] == '.' ]] && class=${package}${class}
-    <<< $(project home src/${${class#.}//.//}.java)
-}
+
 
 function android.XML() {
     local id=${1:=unknown}
@@ -692,15 +431,7 @@ function android.layout() {
     echo $(project home res/layout/${id}.xml)
 }
 
-function android.fullclass() {
-    local class=$1
-    local package=$(android.package)
-    if [[ "$class[1]" == "." ]]; then
-        echo $package$class
-    else
-        echo $class
-    fi    
-}
+
 
 function +android() {
     help() {

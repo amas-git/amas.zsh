@@ -181,7 +181,6 @@ import() {
 . ~/.profile
 . ~/.alias
 . ~/.zsh.d/module/zlog.zsh
-. ~/.zsh.d/module/libxml.zsh
 . ~/.zsh.d/module/template.zsh
 . ~/.zsh.d/module/libjava.zsh
 . ~/.zsh.d/module/libandroid.zsh
