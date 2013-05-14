@@ -1,0 +1,28 @@
+#!/bin/zsh
+# @vendor
+(
+help() {
+    print "\
+        $ @foldl '$(($1 - $2))' 5 -- 1 2 3 4
+    "
+}
+
+(( $#argv < 3 )) && help && return -1
+local expr="$1"; shift
+local vars="$1"; shift
+local -a opts
+
+zparseopts -D  -- h:=opts
+func() {
+    @A
+    vars=${(e)expr}
+}
+
+integer level=0
+for x in ${argv}; do
+    @EF "$level: $vars "
+    func "$vars" "$x"
+    (( ++level ))
+done
+echo $vars
+)

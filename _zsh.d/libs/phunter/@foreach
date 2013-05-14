@@ -1,0 +1,25 @@
+#!/bin/zsh
+function main() {
+    (
+        help() {
+            print '\
+$ @foreach <expr> element1 element2 ... elementN
+
+EXAMPLE:
+$ @foreach "'"echo $1"'" a b c
+a 
+b
+c
+
+NOTICE:
+This function executed on subshell
+'
+        }
+        [[ -z $argv ]] && help && return -1
+        eval 'function _() { '"$1"' }'
+        for x in $argv[2,-1]; do
+            _ "$x"
+        done
+    )
+}
+main $*

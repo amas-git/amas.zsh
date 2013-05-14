@@ -1,0 +1,52 @@
+#!/bin/zsh
+function main() {
+    ( # remove subshell may case outout memory, why?        
+        help() {
+print '''
+
+'''
+        }
+        ___emap=()
+        local -A omap
+        local -i ___i ___row col_size
+        local -a ___columns ___argv
+        local ___expr="$(<&0)"
+
+        zparseopts -A omap -D -K -- c:=omap
+        
+        # clone $argv
+        ___argv=("${(@)argv}")
+
+        if [[ -n $omap[-c] && $omap[-c] != <-> ]]; then
+            ___columns=($=omap[-c])
+            col_size=$#___columns
+        else
+            col_size=${omap[-c]:=1}
+        fi
+        
+        # check tuple number
+        (( col_size > 0 && $#___argv%$col_size != 0 )) && print -u2 "$#___argv elements can't group by $col_size" && return -1
+
+        ___row=$(($#___argv/col_size))
+        
+        # TODO: 可以使用匿名函数
+        emap.expand() {
+            local -i ___i=1
+            local ___name
+            for ___name in $___columns; do
+                local "$___name"=$argv[___i]
+                (( ++___i ))
+            done
+            ___emap+=${(e)___expr}
+        }
+
+
+        for ((___i=0; ___i<___row; ___i++ )); do
+            emap.expand "${(@)___argv[___i*col_size+1,(___i+1)*col_size]}"
+        done
+
+        print -l -- $___emap
+    )
+}
+
+main $*

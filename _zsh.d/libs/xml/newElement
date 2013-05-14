@@ -51,7 +51,7 @@ function main() {
     # @EF "$options"
     
     # @DF "echo \$xml | xml ed $options -r //$uuid -v $elementN"
-    eval "echo \$xml | xml ed $XML_OPTS $options -r //$uuid -v $elementN"
+    eval "echo \$xml | xml ed -S $XML_OPTS $options -r //$uuid -v $elementN"
 }
 
 main $*

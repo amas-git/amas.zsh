@@ -1,0 +1,45 @@
+#!/bin/zsh
+local selected
+function help() {
+    print '
+$ zls [-e] <text>
+OPTIONS:
+    -e: edit selected template
+'
+}
+
+
+(
+    zparseopts  -K -D -- e=flags
+    
+    local filter
+    local -a ztemplate
+
+    filter=$1
+    
+    selected=$(
+        cd $ZHOME/$filter
+        
+        ztemplate=(**/*.z)
+        PROMPT3="选择一个模板'$ZHOME/$1'(q:退出): "
+        select selected in $ztemplate; do
+            if [[ "$REPLY" = q ]];  then
+                break
+            elif [[ -n "$REPLY" ]]; then
+                <<< "$selected"
+                break
+            fi
+        done
+    )
+    
+    selected=${ZHOME}${filter}/$selected
+
+    if [[ -n $flags[(r)-e] ]]; then
+        $EDITOR "$selected"
+    else
+        z "$selected"
+    fi
+)
+
+
+

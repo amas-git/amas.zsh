@@ -1,0 +1,71 @@
+#!/bin/zsh
+# new template handler
+    (
+        function help() {
+            print '''
+$ z TEMPLATE
+'''
+        }
+
+        
+        [[ -z $argv ]] && help && return 0
+        zparseopts -K -D -- I=flags
+        @EF $flags
+        local Z_SOURCE="$1" && shift;
+
+
+        local _line _handler 
+        local -a _chunk _echunk
+        local _context=:NONE
+        setopt EXTENDED_GLOB
+
+        function evalchunk() {
+            # has echunk
+            [[ -n $_echunk ]] && <<< ${(eF)_echunk} && _echunk=()
+            (( $#_chunk    )) || return
+
+            # has chunk, pipe to it's handler
+            <<< ${(F)_chunk} eval "$_handler"
+
+            # reset state
+            _chunk=()
+            _handler=
+        }
+
+        function @i() {
+            # skip interactive mode
+            [[ -n $flags[(r)-I] ]] && return
+            local content="$(<&0)"
+            eval "$(<<< ${(e)content} | vipe)"
+            # eval $xxx
+        }
+
+        function @e() {
+            local sh
+            sh="$(<&0)"
+            eval "$sh"
+            @EF "$sh"
+        }
+
+        function @echo() {
+            <<< "$(<&0)"
+        }
+
+        for _line in "${(@f)$(<$Z_SOURCE)}"; do
+
+            if [[ $_line = (#b)\#----(-)#\|(\ )#(*) ]]; then
+                evalchunk
+                _context=:CHUNK
+                _handler="$match[3]"
+            elif [[ $_line = (#b)\#----(-)# ]]; then
+                _context=:CHUNK_END
+                evalchunk
+            else
+                [[ $_context = :CHUNK ]] && _chunk+=$_line && continue
+                _echunk+=$_line
+            fi
+        done
+        
+        # ensure last chunk be evaled
+        evalchunk
+    )

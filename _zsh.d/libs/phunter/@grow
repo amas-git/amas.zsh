@@ -1,0 +1,87 @@
+#!/bin/zsh
+# $ @acc -c 'NAME AGE' xiaoming 18 zhoujb '19' wangming '29' <<<'
+# == NAME
+# <$NAME>
+# == AGE
+# <$AGE>
+#'
+#
+# TODO:
+# 1. support num parameters
+# 2. support gsep
+function @grow() {
+help() {
+    print -u2 '\
+        SYNOPSIS
+    @grow [-s] [-c namelist | -c number ] -- element1 element2 ... elementN 
+    DESCRIPTION
+    Expand piped expr, each placeholder(or variable) will be clonned after substitution with specify element seperator which could be specified by option "-s". in shuch way, each placeholder grow up.
+    OPTIONS
+    -s string   : element seperator (default is "\n")
+    -c namelist : "name1 name2 name3" -- element1 elemnt2 ... elementN (where N%3=0)
+    -c number   : group elements by number
+    EXAMPLES 
+    '
+}
+
+local -a ___expr ___header ___flags ___argv ___esep
+local -A ___omap
+
+zparseopts -A ___omap -D -K -- c:=___omap s:=___omap
+[[ -z $argv ]] && help && return
+
+___expr="$(<&0)"
+# clone $argv
+___argv=("${(@)argv}")
+
+# global element seperator
+___esep=${___omap[-s]:="\n"}
+
+# group input
+if [[ -n $___omap[-c] && $___omap[-c] != <-> ]]; then
+    ___columns=($=___omap[-c])
+    col_size=$#___columns
+else
+    col_size=${___omap[-c]:=1}
+fi
+
+
+# check tuple number
+(( col_size > 0 && $#___argv%$col_size != 0 )) && print -u2 "$#___argv elements can't group by $col_size" && return -1
+___row=$(($#___argv/col_size))
+
+# TODO: 可以使用匿名函数
+# TODO: 可以令placeholder为数组，节点生长变为向数组中直接追加元素，最后进行一次e展开即可
+acc.expand() {
+    local -i ___i=1
+    local ___name
+
+    # bind column names
+    for ___name in $___columns; do
+        if [[ -n $___LAST ]]; then
+            # last substiution
+            local "$___name"="$argv[___i]"
+        else
+            # grow
+            local "$___name"="$argv[___i]${___esep}\$${___name}"
+        fi
+        (( ++___i ))
+    done
+
+    # nobind, clone number parameter
+    if [[ -z $___columns ]] && [[ -z $___LAST ]]; then
+        for (( ___i=1; ___i<=$#argv; ++___i )); do
+            argv[___i]+="${___esep}\$${___i}"
+        done
+    fi
+    ___expr=${(e)___expr}
+}
+
+for (( ___i=0; ___i<___row; ___i++ )); do
+    (( ___i==(___row-1) )) && ___LAST=1
+    acc.expand "${(@)___argv[___i*col_size+1,(___i+1)*col_size]}"
+done
+
+echo "$___expr"
+)   
+

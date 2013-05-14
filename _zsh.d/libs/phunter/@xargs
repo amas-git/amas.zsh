@@ -1,0 +1,44 @@
+#!/bin/zsh
+# xargs 可以向指定函数反复提交多个参数, 
+# @emap '$1 "This is not mine" ' -- {1..999} | @xargs '(){ echo $2 $1}' 
+# 将所有目录打包
+# print -l * | @pipeline '(){ tar czvf $1.tgz $1}'
+# 支持\0分割？？？
+# FIXME:
+# echo "()" | @xargs  -> will case eval error
+function main() {
+    (
+        help() {
+            [[ -n $argv ]] && print $argv
+            print -- "\
+$ print -l {1..10} | @xargs echo
+$ print -l {1..10} | @xargs '(){ echo \"<\$1>\" }'
+OPTIONS
+    -s <seperator> : How to splite input
+    -0             : splite with '\0', same with -s $'\0'
+"
+        }
+
+        local -a _argv _o_splite _o_flags
+
+        _o_splite=(-s $'\n')
+        zparseopts -D -K -- s:=_o_splite 0=_o_flags
+        local func="$argv" 
+        local _IFS_RESTORE expr
+        [[ -z $func ]] && help "no functions or command" && return -1
+        [[ -n $_o_flags[(r)-0] ]] && _o_splite=(-s $'\0')
+        # splite :P
+        # NOTICE: The $IFS need backup&restore after splite
+        # for avoding take side effect on next eval operation
+        _IFS_RESTORE=$IFS && IFS="$_o_splite[2]"
+        _argv=("${=$(<&0)}")
+        IFS=$_IFS_RESTORE
+
+        for x in $_argv; do
+            expr+="$func $x ;"
+        done
+        eval "$expr"
+    )
+}
+
+main $*

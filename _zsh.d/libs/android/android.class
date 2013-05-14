@@ -5,10 +5,11 @@ function help() {
 }
 
 #--------------------------------------------------[ body ]
-[[ -z $* ]] && help $(basename $0) && return
 
 local class=${1:=$CLASS}
 local package=$(android.package)
+
+[[ -z $class ]] && help $(basename $0) && return
     
 # full class name
 [[ $class[1] == '.' ]] && class=${package}${class}

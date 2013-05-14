@@ -1,0 +1,36 @@
+#!/bin/zsh
+# @vender
+(
+help() {
+    print "\
+        $ @foldr '<$1>$2</$1>' 'He's good body' -- beijing china earth 
+
+    PARAMETERS:
+    $1     : left parameter
+    $2     : right parameter (this always hold expr)
+    $level : root 0, eatch fold calc will inrc this value
+    arithmetic:
+    $ @foldr '$(($1 - $2))' 5 -- 1 2 3 4 5 
+    "
+}
+
+local expr="$1"; shift
+local vars="$1"; shift
+local -a opts
+
+zparseopts -D  -- h:=opts
+
+func() {
+    # @A
+    vars=${(e)expr}
+}
+
+integer level=$#argv
+for x in ${(O)argv}; do
+    func "$x" "$vars"
+    (( --level ))
+done
+echo $vars
+)
+
+

@@ -1,0 +1,45 @@
+#!/bin/zsh
+help() {
+    echo "java.variable [variable-spec] ..."
+    echo "[variable-spec]:"
+    echo "    [-+*]name::type"
+    echo "    +: public"
+    echo "    -: private"
+    echo "    *: protected"
+    echo "[options]:"
+    echo "    -s: static"
+    echo "    -f: final"
+    echo "[e.g]:"
+    echo "$ java.variable -name::String -age::int +TAG::String"
+    echo "private  String name;"
+    echo "private  int age;"
+    echo "public  String TAG;"
+}
+
+[[ -z $argv ]] && help && return
+local -a modifier triple flags
+flags=()
+
+zparseopts -A opts -K -D -- lv:=opts s=flags f=flags 
+[[ -n $flags[(r)-s] ]] && modifier+=static
+[[ -n $flags[(r)-f] ]] && modifier+=final
+names=()
+types=()
+
+local name type
+for varSpec in $argv; do
+    local -a m
+    m=()
+    [[ $varSpec[1] == '-' ]] && varSpec="$varSpec[2,-1]" && m+=private
+    [[ $varSpec[1] == '+' ]] && varSpec="$varSpec[2,-1]" && m+=public
+    [[ $varSpec[1] == '#' ]] && varSpec="$varSpec[2,-1]" && m+=protected
+    m+=$modifier
+    triple=(${(s=::=)varSpec})
+    name=$triple[1]
+    type=$triple[2]
+    names+=$name
+    types+=$type
+    print "$m $type $name;"
+done
+
+

@@ -1,0 +1,59 @@
+#!/bin/zsh
+
+typeset -A JAVA_RV_MAP
+JAVA_RV_MAP[int]=0
+JAVA_RV_MAP[char]=0
+JAVA_RV_MAP[boolean]=false
+JAVA_RV_MAP[long]=0
+JAVA_RV_MAP[float]=0f
+JAVA_RV_MAP[double]=0
+JAVA_RV_MAP[void]=''
+
+function main() {
+    help() {
+        echo "echo [function-body]  | java.method [+-*]function-name::return-type -- param1::parame-type1 ... paramN::param-typeN "
+        echo '[options]'
+        echo '    -s: static'
+        echo '    -f: final'
+        echo '    -r: auto generate *return* statement'
+        echo "e.g: "
+        echo '$ echo "return x+y;" | java.method -add::int -- x::int y::int'
+        echo 'private int add(int x, int y) {'
+        echo '    return x+y;'
+        echo '}'
+    }
+    [[ -z $argv ]] &&  help && return 0
+    local paramsSpec funcSpec  funcSpec_ n r rv nt params modifier statements
+    statements=("${(f)$(<&0)}")
+    modifier=()
+    local flags
+    zparseopts -A opts -K -D -- r=flags s=flags f=flags 
+    
+    # @EF "$flags"
+    integer nx=$argv[(i)--]
+    funcSpec="$argv[1,nx-1]"
+    paramsSpec=($argv[nx+1,-1])
+    
+    funcSpec_=(${(s=::=)funcSpec})
+    n=$funcSpec_[1]
+    r=$funcSpec_[2]
+    if [[ -n $n ]]; then
+        [[ $n[1] == '-' ]] && n="$n[2,-1]" && modifier+=private
+        [[ $n[1] == '+' ]] && n="$n[2,-1]" && modifier+=public
+        [[ $n[1] == '#' ]] && n="$n[2,-1]" && modifier+=protected
+    fi
+    [[ -n $flags[(r)-s] ]] && modifier+=static
+    [[ -n $flags[(r)-f] ]] && modifier+=final
+
+    params=()
+    for x in $paramsSpec; do
+       nt=(${(s=::=)x})
+       params+="$nt[2] $nt[1]"
+    done
+    
+    [[ -n $flags[(r)-r] ]] && statements+="return $JAVA_RV_MAP[$r];"
+    # @EF "$method $name $r $params"
+    print "${modifier} $r $n(${(j:, :)params}) {\n    $(print -l ${statements})\n}"
+}
+
+main $*
