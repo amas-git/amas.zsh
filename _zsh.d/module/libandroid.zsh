@@ -1,5 +1,4 @@
 #!/bin/zsh
-alias android.res.layout='echo $(find-android-project-home res/layout)'
 alias android.src='echo $(find-android-project-home src)'
 
 

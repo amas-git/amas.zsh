@@ -1,3 +1,3 @@
 #!/bin/zsh
 # alias android.xml.listClassById="xmlstarlet sel -t -m \"//*[@android:id!='']\"  -v '@android:id' -o ' ' -c 'name(.)' -o ' '"
-xmlstarlet sel -t -m \"//*[@android:id!='']\" -v '@android:id' -o ' '
+xmlstarlet sel -t -m "//*[@android:id!='']" -v '@android:id' -o ' ' $*
