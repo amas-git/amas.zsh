@@ -1,0 +1,7 @@
+#!/bin/zsh
+
+local delay=20
+local loop=0
+local out=out.gif
+
+convert -loop $loop -delay $delay $* out.gif

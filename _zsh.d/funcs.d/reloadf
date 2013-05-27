@@ -1,0 +1,4 @@
+#!/bin/zsh
+local fname=$1; shift
+unfunction $fname && functions -U $fname
+[[ -n $argv ]] && $fname $*
