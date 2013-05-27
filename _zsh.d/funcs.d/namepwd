@@ -1,0 +1,27 @@
+#!/bin/zsh
+
+function help() {
+    print """
+$ $1 <name> [<path>]
+DESC:
+ name the specify dir
+ARGS:
+ * <name> : name of dir
+ * <path> : path (default will be current workding dir)
+FILE:
+ * ~/.namedir
+
+TODO: 
+ 1. unique entry
+ 2. validate checking
+"""
+}
+
+[[ -z $argv ]] && help $(basename $0)
+
+local dir=${2:=$(pwd)}
+local name=${1}
+
+
+echo "hash -d $name=$dir" >> ~/.namedir
+source ~/.namedir
