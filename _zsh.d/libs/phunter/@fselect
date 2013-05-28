@@ -1,0 +1,40 @@
+#!/bin/zsh
+
+function help() {
+    print '
+$ mselect [-m <GLOB>] [-mm <FILTER_TEXT> ] [<ROOT_DIR>]
+DESC:
+ choose file by specify globbing & patterns
+OPTS:
+ * -m: file globbing
+ * -mm: secondary filter, grep like pattern can be applied 
+ARGS:
+ * <ROOT_DIR> : search root (optional)
+'
+}
+
+
+
+opts=() 
+zparseopts -A opts -K -D -- m:=opts mm:=opts
+
+local _m=$opts[-m]
+local _mm=$opts[-mm]
+local root=$1
+
+local -a mached
+mached=("${(@f)$(<&0)}")
+
+# -mm: secondary filter
+[[ -n $_mm ]] && mached=($(print -l $mached | grep $_mm))
+
+# PROMPT3="$opts[-c][默认值='$defaultValue'](退出:q): " 
+
+select selected in $mached; do
+if [[ "$REPLY" = q ]]; then
+    break
+elif [[ -n "$REPLY" ]]; then
+    print ${root}$selected
+    break
+fi
+done

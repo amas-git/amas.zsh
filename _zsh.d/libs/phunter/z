@@ -48,7 +48,8 @@ $ z TEMPLATE
         }
 
         function @echo() {
-            <<< "$(<&0)"
+            local content="$(<&0)"
+            <<< ${(e)content}
         }
 
         for _line in "${(@f)$(<$Z_SOURCE)}"; do
