@@ -30,11 +30,22 @@ mached=("${(@f)$(<&0)}")
 
 # PROMPT3="$opts[-c][默认值='$defaultValue'](退出:q): " 
 
-select selected in $mached; do
-if [[ "$REPLY" = q ]]; then
-    break
-elif [[ -n "$REPLY" ]]; then
-    print ${root}$selected
-    break
-fi
+# TODO: 如果是数字,则选择, 如果是文字则过滤
+# select selected in $mached; do
+# if [[ "$REPLY" = q ]]; then
+#     break
+# elif [[ -n "$REPLY" ]]; then
+#     print ${root}$selected
+#     break
+# fi
+# done
+# read 'n?select='
+# return
+selected=''
+
+while true; do
+    print -u2 -ac $mached
+    # read 'n?请选择# '
+    read -u2 'n?select='
+    
 done

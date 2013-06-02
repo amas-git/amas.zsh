@@ -67,6 +67,7 @@ $ z TEMPLATE
             fi
         done
         
+        # TODO: 如果handler不存在,则退出
         # ensure last chunk be evaled
         evalchunk
     )
