@@ -1,2 +1,12 @@
 #!/bin/zsh
-adb shell mount -o remount /dev/block/mtdblock0 /system
+(
+    remount="mount -o remount /dev/block/mtdblock0 /system"
+    su=$(adb shell 'ls /system/bin/su 2&>/dev/null || ls /system/xbin/su 2&>/dev/null')
+    cmd=(adb shell)
+
+    # rooted ?
+    [[ -n $su ]] && cmd+=(su -c) 
+    
+    cmd+=$remount
+    $cmd
+)

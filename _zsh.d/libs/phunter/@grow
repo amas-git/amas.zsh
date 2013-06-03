@@ -9,15 +9,16 @@
 # TODO:
 # 1. support num parameters
 # 2. support gsep
-function @grow() {
+
+(
 help() {
     print -u2 '\
-        SYNOPSIS
+    SYNOPSIS
     @grow [-s] [-c namelist | -c number ] -- element1 element2 ... elementN 
     DESCRIPTION
     Expand piped expr, each placeholder(or variable) will be clonned after substitution with specify element seperator which could be specified by option "-s". in shuch way, each placeholder grow up.
     OPTIONS
-    -s string   : element seperator (default is "\n")
+    -s string   : element seperator (default is "\\n")
     -c namelist : "name1 name2 name3" -- element1 elemnt2 ... elementN (where N%3=0)
     -c number   : group elements by number
     EXAMPLES 
@@ -83,5 +84,4 @@ for (( ___i=0; ___i<___row; ___i++ )); do
 done
 
 echo "$___expr"
-)   
-
+)
