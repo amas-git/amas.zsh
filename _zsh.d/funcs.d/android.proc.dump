@@ -8,5 +8,5 @@ pids=($(adb shell ps | awk '{print $2}'))
 
 for x in $pids; do
     echo "pid=$x" 
-    echo " cmdline='$(adb shell cat /proc/$x/cmdline)'"
+    echo " cmdline='$(android.su cat /proc/$x/cmdline)'"
 done
