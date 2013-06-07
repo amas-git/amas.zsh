@@ -1,0 +1,2 @@
+#!/bin/zsh
+date -d @$1 +'%Y%m%d %H:%M:%S'
