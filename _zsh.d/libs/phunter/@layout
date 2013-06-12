@@ -28,14 +28,7 @@ context:
 '
     }
 
-    spec="
-{x y[123]}
-{A[padding=0 weight=0.1] B C[x=1 y=2 e=f k=z] {D[a=1 b=2] E F[x=9]} {E {N[z=1]} {A}{B}{C}{D}{E}{F}{Z}{K}} {周小天[x=1]} }
-{X Y[a=b c=d e=f]}
-{A {B} {e {f {z {k {m {h {q m e}}}}}}}}
-{B E Z{P K M[a=b]}}
-{Z K}
-"
+    spec="$(<&0)"
 
     function msg() {
         echo "[@layout]: $FG[white]$argv$TG"
@@ -82,7 +75,7 @@ context:
         atom=
         ch=
         integer level=0
-        context=($context[1])
+        context=(0)
         (( context[level+1]+=1 ))
 
         
@@ -114,7 +107,7 @@ context:
                 return
             fi
 
-            onNewAttrs $attrs
+            onNewAttrs $attrs > /dev/null
             echo $(( m-i ))
         }
           
