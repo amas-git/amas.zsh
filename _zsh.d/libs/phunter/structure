@@ -1,0 +1,90 @@
+#!/bin/zsh
+(
+    spec='
+{x y}
+{A[padding=0 weight=0.1] B C[x=1 y=2 e=f k=z] {D[a=1 b=2] E F[x=9]} {E {N[z=1]}} {周小天[x=1]} }
+{X Y[a=b c=d e=f]}
+'
+    dump() {
+        echo "dump: $#argv args -> $argv"
+    }
+
+    function msg() {
+        echo "[@layout]: $FG[white]$argv$TG"
+    }
+
+    # group start / end
+    GS="{"
+    GE="}"
+
+    # attributes start / end
+    AS="["
+    AE="]"
+    
+    # padding char
+    PC=' '
+    # shift width
+    SW=2
+
+    function padding() {
+        pc=
+        for ((i=0; i<$1*SW; ++i)); do
+            pc+=$PC
+        done
+        echo $pc
+        # another way of repeating char
+        # printf "$PC%.4s" {1..$1}
+    }
+
+    function layout() {
+        [[ -z $argv ]] && return
+        # msg $*
+        # direction: [H|V]
+        direction=H
+        atoms=()
+        stack=()
+        
+        spec="$argv"
+        size=$#spec
+
+        integer level=0
+        
+        atom=
+        function newAtom() {
+            if [[ -n $atom ]]; then
+                atoms+=$atom
+                print -u2 "$(padding $level)$atom" 
+                atom=
+            fi
+            return 0
+        }
+
+        function newAttrs() {
+            local attrs=
+            m=0
+            for (( j=i+1; j<size; ++j)); do
+                [[ $spec[j] == $AE ]] && break
+                attrs+=$spec[j]
+                (( m++ ))
+            done
+            print -u2  "$(padding $level)$atoms[-1]" "$attrs"
+            echo $(( ++m ))
+        }
+        
+        ch=
+        for (( i=1; i<=size; ++i )); do
+            ch=$spec[i]
+            [[ $ch == $GS ]] && (( level++, 1 )) && newAtom  && continue
+            [[ $ch == $GE ]] && newAtom  && (( level--, 1 )) && continue
+            [[ $ch == ' ' ]] && newAtom          && continue
+            [[ $ch == $AS ]] && newAtom          && (( i+=$(newAttrs), 1 )) && continue
+            atom+=$ch
+        done
+        # echo "LEVEL=$level"
+        (( level )) && msg "missing ctrl !!!"
+    }
+
+    for x in "${(@f)spec}"; do
+        layout $x
+    done
+)

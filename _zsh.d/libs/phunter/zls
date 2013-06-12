@@ -35,7 +35,7 @@ OPTIONS:
     selected=${ZHOME}${filter}/$selected
 
     if [[ -n $flags[(r)-e] ]]; then
-        $EDITOR "$selected"
+        $ZEDITOR "$selected"
     else
         z "$selected"
     fi

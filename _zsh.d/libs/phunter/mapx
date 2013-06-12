@@ -1,0 +1,2 @@
+#!/bin/zsh
+expr="$1" && shift && print ${(e)expr}
