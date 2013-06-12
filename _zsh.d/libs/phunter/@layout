@@ -27,9 +27,14 @@ context:
 
 '
     }
-
+    typeset -A opts
+    zparseopts -A opts -K -D -E --  new-atom:=opts new-attrs:=opts new-group:=opts end-group:=opts
+    opts[-new-atom]=${opts[-new-atom]:=onNewAtom}
+    opts[-new-attrs]=${opts[-new-attrs]:=onNewAttrs}
+    opts[-new-group]=${opts[-new-group]:=onNewGroup}
+    opts[-end-group]=${opts[-end-group]:=onEndGroup}
     spec="$(<&0)"
-
+    
     function msg() {
         echo "[@layout]: $FG[white]$argv$TG"
     }
@@ -58,6 +63,13 @@ context:
         # printf "$PC%.4s" {1..$1}
     }
     
+    function onNewGroup() {
+    }
+    
+    function onEndGroup() {
+
+    }
+
     function onNewAtom() {
         print -u2 "$context | $1"
     }
@@ -75,7 +87,7 @@ context:
         atom=
         ch=
         integer level=0
-        context=(0)
+        context=($context[1])
         (( context[level+1]+=1 ))
 
         
@@ -84,7 +96,7 @@ context:
                 atoms+=$atom
                 (( context[level+1]+=1 ))
                 ATOM=$atom
-                onNewAtom $atom
+                ($opts[-new-atom] $atom)
                 atom=
             fi
             return 0
@@ -107,15 +119,15 @@ context:
                 return
             fi
 
-            onNewAttrs $attrs > /dev/null
+            ($opts[-new-attrs] $attrs > /dev/null)
             echo $(( m-i ))
         }
           
         for (( i=1; i<=size; ++i )); do
             ch=$spec[i]
             [[ -n $stop   ]] && return
-            [[ $ch == $GS ]] && (( level++, TRUE )) && newAtom  && continue
-            [[ $ch == $GE ]] && newAtom  && (( level--, TRUE )) && continue
+            [[ $ch == $GS ]] && (( level++, TRUE )) && ($opts[-new-group]) && newAtom && continue
+            [[ $ch == $GE ]] && newAtom  && (( level--, TRUE )) && ($opts[-end-group]) && continue
             [[ $ch == ' ' ]] && newAtom  && continue
             [[ $ch == $AS ]] && newAtom  && (( i+=$(newAttrs), TRUE )) && continue
             atom+=$ch
