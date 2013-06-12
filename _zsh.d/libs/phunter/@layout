@@ -55,8 +55,6 @@ context:
     SW=2
     context=()
 
-    typeset -gA emap amap
-
     function padding() {
         pc=
         for (( i=0; i<$1*SW; ++i )); do
@@ -125,8 +123,8 @@ context:
             [[ -n $stop   ]] && return
             [[ $ch == $GS ]] && (( level++, TRUE )) && newAtom  && continue
             [[ $ch == $GE ]] && newAtom  && (( level--, TRUE )) && continue
-            [[ $ch == ' ' ]] && newAtom          && continue
-            [[ $ch == $AS ]] && newAtom          && (( i+=$(newAttrs), TRUE )) && continue
+            [[ $ch == ' ' ]] && newAtom  && continue
+            [[ $ch == $AS ]] && newAtom  && (( i+=$(newAttrs), TRUE )) && continue
             atom+=$ch
         done
         (( level )) && msg "missing ctrl [$level] !!!"
