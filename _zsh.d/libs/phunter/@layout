@@ -27,17 +27,22 @@ context:
 
 '
     }
-    typeset -A opts
-    zparseopts -A opts -K -D -E --  new-atom:=opts new-attrs:=opts new-group:=opts end-group:=opts
-    opts[-new-atom]=${opts[-new-atom]:=onNewAtom}
-    opts[-new-attrs]=${opts[-new-attrs]:=onNewAttrs}
-    opts[-new-group]=${opts[-new-group]:=onNewGroup}
-    opts[-end-group]=${opts[-end-group]:=onEndGroup}
+    typeset -gA fmap
+
+    flags=()
+    zparseopts -A opts -K -D -E -- p=flags
+
+
     spec="$(<&0)"
     
     function msg() {
         echo "[@layout]: $FG[white]$argv$TG"
     }
+
+    if [[ -n $flags[(r)-p] ]]; then
+        fmap[new-atom]=printAtom
+        fmap[new-attrs]=printAttrs
+    fi
 
     # group start / end
     GS=${GS:='{'}
@@ -52,7 +57,7 @@ context:
     # shift width
     SW=2
     context=()
-
+    
     function padding() {
         pc=
         for (( i=0; i<$1*SW; ++i )); do
@@ -62,20 +67,18 @@ context:
         # another way of repeating char
         # printf "$PC%.4s" {1..$1}
     }
-    
-    function onNewGroup() {
+
+    function printAtom() {
+        echo "$(padding $LEVEL)$ATOM [$ATTRS]"
     }
     
-    function onEndGroup() {
-
+    function printAttrs() {
+        echo "$(padding $LEVEL)$ATOM [$ATTRS]"
     }
 
-    function onNewAtom() {
-        print -u2 "$context | $1"
-    }
-
-    function onNewAttrs() {
-        print -u2 "$context | $ATOM $1"
+    function call() {
+        local fname=$1 && shift
+        [[ -n $fmap[$fname] ]] && $fmap[$fname]  $*
     }
 
     function layout() {
@@ -83,60 +86,66 @@ context:
         stop=
         ATOM=
         spec="$argv"
-        size=$#spec
-        atom=
+        SIZE=$#spec
+        ATOM=
         ch=
-        integer level=0
+        integer LEVEL=0
         context=($context[1])
-        (( context[level+1]+=1 ))
+        (( context[LEVEL+1]+=1 ))
 
         
         function newAtom() {
-            if [[ -n $atom ]]; then
-                atoms+=$atom
-                (( context[level+1]+=1 ))
-                ATOM=$atom
-                ($opts[-new-atom] $atom)
-                atom=
+            if [[ -n $ATOM ]]; then
+                (( context[LEVEL+1]+=1 ))
+                call new-atom
+                ATOM=
             fi
             return 0
         }
 
-        function newAttrs() {
-            local attrs=
-            local -i m
-            (( m=i+1 ))
-            while (( m<size )); do
-                [[ $spec[m] == $AE ]] && break
-                attrs+=$spec[m]
-                (( m++ ))
-            done
-            
-            if (( m >= size )); then
-                print -u2 "missing ']' at line '$x' attrs $ATOM" 
-                stop=true
-                echo 0
-                return
-            fi
+        function newAtomWithAttrs() {
+            local ATTRS=
+            local -i M
 
-            ($opts[-new-attrs] $attrs > /dev/null)
-            echo $(( m-i ))
+            
+            if [[ -n $ATOM ]]; then
+                (( context[LEVEL+1]+=1 ))
+                
+                
+                (( M=I+1 ))
+                while (( m<SIZE )); do
+                    [[ $spec[M] == $AE ]] && break
+                    ATTRS+=$spec[M]
+                    (( M++ ))
+                done
+                call new-atom
+                ATOM=
+                if (( M >= SIZE )); then
+                    print -u2 "missing ']' at line '$X' attrs $ATOM" 
+                    stop=true
+                    return 0
+                fi
+                I=M
+            fi        
+            return 0
         }
           
-        for (( i=1; i<=size; ++i )); do
-            ch=$spec[i]
+        for (( I=1; I<=SIZE; ++I )); do
+            ch=$spec[I]
             [[ -n $stop   ]] && return
-            [[ $ch == $GS ]] && (( level++, TRUE )) && ($opts[-new-group]) && newAtom && continue
-            [[ $ch == $GE ]] && newAtom  && (( level--, TRUE )) && ($opts[-end-group]) && continue
+            [[ $ch == $GS ]] && (( LEVEL++, TRUE )) && newAtom && continue
+            [[ $ch == $GE ]] && newAtom  && (( LEVEL--, TRUE )) && continue
             [[ $ch == ' ' ]] && newAtom  && continue
-            [[ $ch == $AS ]] && newAtom  && (( i+=$(newAttrs), TRUE )) && continue
-            atom+=$ch
+            [[ $ch == $AS ]] && newAtomWithAttrs && continue
+            ATOM+=$ch
         done
-        (( level )) && msg "missing ctrl [$level] !!!"
+        (( LEVEL )) && msg "missing ctrl [$level] !!!"
     }
     
-    local x
-    for x in "${(@f)spec}"; do
-        layout $x
+    local LINE
+    call create
+    for LINE in "${(@f)spec}"; do
+        layout $LINE
     done
+    call finish
 )
