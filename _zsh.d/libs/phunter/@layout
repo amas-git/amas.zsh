@@ -72,17 +72,18 @@ function layout() {
     ch=
     integer LEVEL=0
     context=($context[1])
-    (( context[LEVEL+1]+=1 ))
+    # (( context[LEVEL+1]+=1 ))
 
     
     function @changeContext() {
-         (( context[LEVEL+1]+=1 )) ; context=($context[1,LEVEL+1])
+        (( context[LEVEL+1]+=1 ))
+        context=($context[1,LEVEL+1])
     }
 
     function @newAtom() {
+        [[ $1 != LAST ]] && @changeContext
         if [[ -n $ATOM ]]; then
-            @changeContext
-            @call new-atom
+            @call new-atom $1
             ATOM=
         fi
         return 0
@@ -117,7 +118,7 @@ function layout() {
     for (( I=1; I<=SIZE; ++I )); do
         ch=$spec[I]
         [[ -n $stop   ]] && return
-        [[ $ch == $GS ]] && @newAtom  && (( LEVEL++, TRUE )) && @newAtom && continue
+        [[ $ch == $GS ]] && @newAtom LAST && (( LEVEL++, TRUE )) && @newAtom  && continue
         [[ $ch == ' ' ]] && @newAtom  && continue
         [[ $ch == $GE ]] && @newAtom  && (( LEVEL--, TRUE )) && continue
         [[ $ch == $AS ]] && @newAtomWithAttrs && continue
