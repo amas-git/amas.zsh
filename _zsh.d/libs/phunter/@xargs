@@ -21,23 +21,19 @@ OPTIONS
 
         local -a _argv _o_splite _o_flags
 
-        _o_splite=(-s $'\n')
-        zparseopts -D -K -- s:=_o_splite 0=_o_flags
-        local func="$argv" 
-        local _IFS_RESTORE expr
-        [[ -z $func ]] && help "no functions or command" && return -1
-        [[ -n $_o_flags[(r)-0] ]] && _o_splite=(-s $'\0')
-        # splite :P
-        # NOTICE: The $IFS need backup&restore after splite
-        # for avoding take side effect on next eval operation
-        _IFS_RESTORE=$IFS && IFS="$_o_splite[2]"
+        seperator=(-s $'\n')
+        
+        zparseopts -D -K -- s:=seperator 0=_o_flags
+        [[ -z $argv ]] && help "no functions or command" && return -1
+        [[ -n $_o_flags[(r)-0] ]] && seperator=(-s $'\0')
+
+
+        IFS="$seperator[2]"
         _argv=("${=$(<&0)}")
-        IFS=$_IFS_RESTORE
 
         for x in $_argv; do
-            expr+="$func $x ;"
+            $argv ${(Q)${(z)x}}
         done
-        eval "$expr"
     )
 }
 
