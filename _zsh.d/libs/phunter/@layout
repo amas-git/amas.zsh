@@ -12,7 +12,7 @@ FIXME:
 CALLBACKS:
 '
 }
-
+zmodload zsh/mathfunc
 flags=()
 zparseopts -A opts -K -D -E -- p=flags
 
@@ -54,24 +54,24 @@ function padding() {
 
 function printAtom() {
     # echo "$(padding $LEVEL)$ATOM [$ATTRS]"
-    echo "$context | $ATOM [$ATTRS]"
+    # echo "$context | $ATOM [$ATTRS]"
 }
 
-function @call() {
+function @CALL() {
     local fname=$1 && shift
     [[ ${(t)fmap} == association ]] && [[ -n $fmap[$fname] ]] && $fmap[$fname]  $*
 }
 
-function layout() {
+function @LAYOUT() {
     [[ -z $argv ]] && return
     stop=
     ATOM=
+    ATOMS=()
     spec="$argv"
     SIZE=$#spec
-    ATOM=
     ch=
-    integer LEVEL=0
-    context=($context[1])
+    integer LEVEL=1
+    # context=($context[1])
     # (( context[LEVEL+1]+=1 ))
 
     
@@ -114,23 +114,77 @@ function layout() {
         fi        
         return 0
     }
+
+    function @CTXCHANGE() {
+        local TAG="$1"; shift
+        [[ $TAG == ATOM ]] && @CALL new-atom "$argv[2,-1]" "$argv[1]" && return
+        printf '%4d' $*; echo
+    }
+
+    function @LPAREN() {
+        (( ++LEVEL ))
+        (( context[LEVEL]=abs(context[LEVEL])+1 ))
+        
+        # context=($context[1,LEVEL])
+        # echo "::: $context"
+        @CTXCHANGE LPAREN $context[1,LEVEL]
+    }
+
+    function @RPAREN() {
+        (( context[LEVEL]=-context[LEVEL] ))
+        @CTXCHANGE RPAREN $context[1,LEVEL]
+        context[LEVEL+1]=
+        (( --LEVEL ))    
+    }
+    
+    function @IS_SPACE() {
+        if [[ $* == ' ' ]]; then
+            return 0
+        else
+            return 1
+        fi
+    }
+
+    function @CREATE_ATOM() {
+        local atom
+        while (( I < SIZE )) ; do
+            CH=$spec[I]
+            atom+=$CH
+            NT=$spec[I+1]
+            @IS_SPACE $NT    && break
+            [[ $NT == $GS ]] && break
+            [[ $NT == $GE ]] && break
+            (( ++I ))
+        done
+        [[ -z $atom ]] && return
+        
+        # create new atom
+        (( context[LEVEL+1]=abs(context[LEVEL+1])+1 ))
+        @CTXCHANGE ATOM "$atom" $context[1,LEVEL+1]
+    }
+
+
     
     for (( I=1; I<=SIZE; ++I )); do
-        ch=$spec[I]
-        [[ -n $stop   ]] && return
-        [[ $ch == $GS ]] && @newAtom LAST && (( LEVEL++, TRUE )) && @newAtom  && continue
-        [[ $ch == ' ' ]] && @newAtom  && continue
-        [[ $ch == $GE ]] && @newAtom  && (( LEVEL--, TRUE )) && continue
-        [[ $ch == $AS ]] && @newAtomWithAttrs && continue
-        ATOM+=$ch
+        CH=$spec[I]
+  
+        @IS_SPACE $CH    && continue
+        [[ $CH == $GS ]] && @LPAREN && continue
+        [[ $CH == $GE ]] && @RPAREN && continue
+        @CREATE_ATOM
+        # [[ $ch == $GS ]] && @newAtom LAST && (( LEVEL++, TRUE )) && @newAtom  && continue
+        # [[ $ch == ' ' ]] && @newAtom  && continue
+        # [[ $ch == $GE ]] && @newAtom  && (( LEVEL--, TRUE )) && continue
+        # [[ $ch == $AS ]] && @newAtomWithAttrs && continue
+        # ATOM+=$ch
     done
-    (( LEVEL )) && msg "missing ctrl [$level] !!!"
+    (( LEVEL != 1 )) && msg "missing ctrl [$level] !!!"
 }
 
 local LINE
-@call create
+@CALL create
 for LINE in "${(@f)spec}"; do
-    layout $LINE
+    @LAYOUT $LINE
 done
-@call finish
+@CALL finish
 
