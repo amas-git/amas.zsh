@@ -33,7 +33,7 @@ function wiki_export() {
     local tracenv=$1
     local dir=$2
 
-    mkdir -p $dir 2> /dev/null || return $(help "Create backup folder failed!" 2)
+    mkdir -p $dir 2> /dev/null
 
     trac-admin "$tracenv" wiki dump "$dir" && return 0
     return 1
