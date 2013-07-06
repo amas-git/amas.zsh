@@ -46,6 +46,8 @@ function main() {
 
     [[ -z $argv ]] && return $(help "" 1)
     zparseopts -A opts -K -D -E -- -t:=opts
+    tracenv=$1
+    home=$2
 
     wiki_export "$tracenv" "$home"
     backend_git "$home"
