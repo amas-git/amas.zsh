@@ -13,13 +13,13 @@ The help message!!!
 }
 
 function backend_git() {
-    local repo
+    local repo=$1
     [[ -d $repo ]] && {
         (
             cd $repo
-            git pull origin master
             git add -A
             git commit -am "tracbackup auto backup @$(date +%Y%d%m:%H%M%S)"
+            git pull origin master
             git push origin master
         )
     }
@@ -34,7 +34,7 @@ function wiki_export() {
     local dir=$2
 
     mkdir -p $dir 2> /dev/null
-
+    rm $dir/*
     trac-admin "$tracenv" wiki dump "$dir" && return 0
     return 1
 }
@@ -54,3 +54,4 @@ function main() {
 }
 
 main $*
+
