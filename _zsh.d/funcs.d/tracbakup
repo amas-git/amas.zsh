@@ -1,0 +1,54 @@
+#!/bin/zsh
+# @author: amas
+# @email : zhoujb.cn@gmail.com
+# @desc  : backup the trac env
+
+function help() {
+    local DESC="\
+The help message!!!
+"
+    [[ -n $1 ]] && print -u2 "$1"
+    print -u2 $DESC
+    return $2 
+}
+
+function backend_git() {
+    local repo
+    [[ -d $repo ]] && {
+        (
+            cd $repo
+            git pull origin master
+            git add -A
+            git commit -am "tracbackup auto backup @$(date +%Y%d%m:%H%M%S)"
+            git push origin master
+        )
+    }
+}
+
+function backend_ssh() {
+
+}
+
+function wiki_export() {
+    local tracenv=$1
+    local dir=$2
+
+    mkdir -p $dir 2> /dev/null || return $(help "Create backup folder failed!" 2)
+
+    trac-admin "$tracenv" wiki dump "$dir" && return 0
+    return 1
+}
+
+function main() {
+    local tracenv home
+    typeset opts
+    local -a flags
+
+    [[ -z $argv ]] && return $(help "" 1)
+    zparseopts -A opts -K -D -E -- -t:=opts
+
+    wiki_export "$tracenv" "$home"
+    backend_git "$home"
+}
+
+main $*
