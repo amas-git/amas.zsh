@@ -1,0 +1,166 @@
+#!/bin/zsh
+
+alias jq='jq -c -M'
+
+
+gson_object='
+============================================================| $(android.class  com.yto.ytomobile.network.bean.${(C)root}${(C)node})
+package com.yto.ytomobile.network.bean;
+
+public class ${(C)root}${(C)node} {
+${(F)children_gen} 
+
+public String toString() {
+StringBuilder sb = new StringBuilder();
+${(F)tostring_gen}
+return sb.toString();
+}
+}
+'
+
+function getchildren() {
+    local context="$1"
+
+    for x in ${(k)jscheme}; do
+        [[ $context == $(dirname $x) ]] && {
+            echo $x
+        }
+    done
+}
+
+function genjava() {
+    local key="$1"
+
+    local type="$jscheme[$key]"
+    local name="$(basename $key)"
+
+    [[ $type = number ]] && {
+        echo "public int $name = 0;"
+    }
+
+    [[ $type = string ]] && {
+        echo "public String $name = null;"
+    }
+
+    [[ $type = null ]] && {
+        echo "public String $name = null;"
+    }
+    
+    [[ $type = boolean ]] &&  {
+        echo "public boolean $name = false;"
+    }
+
+    [[ $type = object ]] && {
+        echo "public  ${(C)root}${(C)name} $name = null;"
+    }
+
+    [[ $type = array ]] && {
+        echo "public List< ${(C)root}${(C)name}_Elem> $name = null;"
+    }
+
+}
+
+function gentostring() {
+    local key="$1"
+
+    local type="$jscheme[$key]"
+    local name="$(basename $key)"
+
+    [[ $type = array ]] && {
+        array_gen='
+for (${(C)name} x : $name) {
+    sb.append("----------| ").append(""+x).append("\\\n");
+}
+'     
+        echo -E ${(e)array_gen}
+        return
+    }
+
+    local template='sb.append("$name=").append($name).append("\\\n");'
+    echo -E ${(e)template}
+
+}
+
+function togson() {
+
+}
+
+
+function tojava() {
+    local type
+    local jcontext
+    local classname
+    local -A gson
+
+    for x in ${(ok)jscheme}; do
+        type=$jscheme[$x]
+        jcontext=$x
+        node=$(basename $x)
+
+        [[ $type == object ]] && {
+            children=($(getchildren "$jcontext"))
+            children_gen=()
+            tostring_gen=()
+
+            for ch in $children; do
+                children_gen+=$(genjava $ch)
+                tostring_gen+=$(gentostring $ch)
+            done
+            echo ${(e)gson_object}
+            echo ""
+            echo ""
+        }
+    done
+}
+
+
+
+
+
+
+
+function jwalk() {
+    local node="$2"
+    local jcontext="$1/$node"
+    local json="$3"
+    local -a keies 
+
+    [[ -z $json ]] && { return 1 } 
+    local type=${(Q)$(<<< "$json" | jq 'type')}
+    jscheme[$jcontext]="$type"
+    # echo "---------------------------| $jcontext    $type"
+    [[ $type == number  ]] && { return 0 }
+    [[ $type == string  ]] && { return 0 }
+    [[ $type == null    ]] && { return 0 }
+    [[ $type == boolean ]] && { return 0 }
+    [[ $type == array   ]] && { 
+        json=$(echo $json | jq ".[0]") 
+        [[ -z $json ]] && return
+        jcontext="$jcontext/$(basename $jcontext)_elem"
+        jscheme[$jcontext]=object
+        # TODO: how about string array ? or int array ????
+        # 此时如果出现 x:[] 空数组的话,导致无法选择
+    }
+    
+        
+    keies=(${(Qs:,:)${"$(echo $json | jq '. | keys')"[2,-2]}})
+    
+    [[ -z $keies ]] && return 0
+
+    for child in $keies; do
+        child_json="$(echo $json | jq .$child)"
+        jwalk $jcontext $child $child_json
+    done
+}
+
+function main() {
+    local json="$(< $1)"
+    local root=$2
+    (
+        typeset -gA jscheme
+        jscheme=()
+        jwalk "" "$root" "$json"
+        tojava
+    )
+}
+main $*
