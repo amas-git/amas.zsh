@@ -1,0 +1,50 @@
+#!/bin/zsh
+# @required: jq
+
+alias jq='jq -c -M'
+typeset -gA jscheme
+
+function traverse() {
+    local node="$2"
+    local jcontext="$1/$node"
+    local json="$3"
+    echo "--------------------------------"
+    echo "$json"
+    echo "--------------------------------"
+    local -a keies 
+
+    [[ -z $json ]] && { return 1 } 
+    local type=${(Q)$(<<< "$json" | jq 'type')}
+    jscheme[$jcontext]="$type"
+    echo "---------------------------| $jcontext    $type"
+    [[ $type == number  ]] && { return 0 }
+    [[ $type == string  ]] && { return 0 }
+    [[ $type == null    ]] && { return 0 }
+    [[ $type == boolean ]] && { return 0 }
+    [[ $type == array   ]] && { 
+        json=$(echo $json | jq ".[0]") 
+        [[ -z $json ]] && return
+        jcontext="$jcontext/$(basename $jcontext)_elem"
+        jscheme[$jcontext]=object
+        # TODO: how about string array ? or int array ????
+        # 此时如果出现 x:[] 空数组的话,导致无法选择
+    }
+    
+    
+    keies=(${(Qs:,:)${"$(echo $json | jq '. | keys')"[2,-2]}})
+    typeset -p keies
+    [[ -z $keies ]] && return 0
+
+    for child in $keies; do
+        child_json="$(echo $json | jq .$child)"
+        traverse $jcontext $child $child_json
+    done
+}
+
+function main() {
+    local json="$(<&0)"
+    traverse "" "root" "$json"
+}
+
+main $*
+

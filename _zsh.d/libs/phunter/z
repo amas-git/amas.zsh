@@ -1,6 +1,6 @@
 #!/bin/zsh
 # new template handler
-    (
+    # (
         function help() {
             print '''
 $ z TEMPLATE
@@ -21,7 +21,11 @@ $ z TEMPLATE
 
         function evalchunk() {
             # has echunk
-            [[ -n $_echunk ]] && <<< ${(eF)_echunk} && _echunk=()
+            [[ -n $_echunk ]] && {
+                <<< ${(eF)_echunk}
+                _echunk=()
+            }
+
             (( $#_chunk    )) || return
 
             # has chunk, pipe to it's handler
@@ -37,7 +41,6 @@ $ z TEMPLATE
             [[ -n $flags[(r)-I] ]] && return
             local content="$(<&0)"
             eval "$(<<< ${(e)content} | vipe)"
-            # eval $xxx
         }
 
         function @e() {
@@ -47,9 +50,21 @@ $ z TEMPLATE
             @EF "$sh"
         }
 
+        function @as() {
+            typeset -g ${1:=_as}="$(<&0)"
+        }
+
         function @echo() {
             local content="$(<&0)"
             <<< ${(e)content}
+        }
+
+        function @select() {
+            local -a options
+            options=("${(@f)$(<&0)}")
+            select x in $options; do
+                echo $REPLY
+            done
         }
 
         for _line in "${(@f)$(<$Z_SOURCE)}"; do
@@ -70,4 +85,4 @@ $ z TEMPLATE
         # TODO: 如果handler不存在,则退出
         # ensure last chunk be evaled
         evalchunk
-    )
+    # )

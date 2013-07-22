@@ -1,4 +1,4 @@
-x#compdef adb
+#compdef adb
 local ops
 
 _adb() {
@@ -39,6 +39,7 @@ _adb_command() {
         'install:push this package file to the device and install it'
         'uninstall:remove this app package from the device'
         'ppp:Run PPP over US'
+        'test:test'
     )
 
 
@@ -53,6 +54,30 @@ _adb_command() {
     fi
     
     return ret
+}
+
+_vowel() {
+    local xs
+    xs=($(adb shell ls /))
+    _multi_parts  " " xs
+}
+
+# 仅供测试使用
+_adb_command_test() {
+    local dirs
+    dirs=(/usr)
+    array=(a b c)
+    ops=(
+        '(--directory -d)'{--directory=OPT,-d}'['目录']:输入一个目录:_path_files -W ~'
+        '--so:共享库:_path_files -W (/tmp /usr)'
+        '-file:文件:_files -g "*.txt"'
+        '-c:元音:_vowel'
+    )
+    
+
+    _arguments -s $ops[@]      
+    # _values -w "选项" 'name['名字']:file:'
+    return 0
 }
 
 # adb install
