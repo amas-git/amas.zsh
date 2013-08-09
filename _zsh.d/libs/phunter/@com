@@ -1,0 +1,30 @@
+#!/bin/zsh
+(
+HELP="\
+"
+
+function main() {
+    local x
+    local -a ixs xs
+    local -i i=1
+
+    for x in $argv; do
+        [[ $x == -- ]] && {
+            ixs+=$i
+        }
+        
+        (( i++ ))
+    done
+
+    xs=($argv[1,$ixs[1]-1])
+    i=$ixs[1]
+    
+    for x in $ixs[2,-1] $#argv+1; do
+        xs=($^xs$^argv[i+1,$x-1])
+        i=$x
+    done
+    echo $xs
+}
+
+main $*
+)

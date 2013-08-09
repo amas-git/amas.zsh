@@ -12,7 +12,6 @@ function main() {
             [[ -n $argv ]] && print $argv
             print -- "\
 $ print -l {1..10} | @xargs echo
-$ print -l {1..10} | @xargs '(){ echo \"<\$1>\" }'
 OPTIONS
     -s <seperator> : How to splite input
     -0             : splite with '\0', same with -s $'\0'

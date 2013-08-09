@@ -1,6 +1,8 @@
 #!/bin/zsh
 # new template handler
-    # (
+# TODO:
+# @select 不能工作在子进程中
+(
         function help() {
             print '''
 $ z TEMPLATE
@@ -85,4 +87,4 @@ $ z TEMPLATE
         # TODO: 如果handler不存在,则退出
         # ensure last chunk be evaled
         evalchunk
-    # )
+)
