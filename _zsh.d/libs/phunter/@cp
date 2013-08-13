@@ -1,0 +1,22 @@
+#!/bin/zsh
+(
+HELP="\
+"
+
+main() {
+    local -a src
+    local rename=$1
+
+    src=("${(@f)$(<&0)}")
+    
+    rename() {
+        echo ${(e)rename}
+    }
+
+    for x in $src; do
+        echo $(rename $(basename $x))
+    done
+}
+
+main $*
+)
