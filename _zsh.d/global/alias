@@ -111,6 +111,7 @@ alias adb.ls="adb shell ls"
 alias retrace='/opt/android/tools/proguard/bin/retrace.sh'
 
 alias git.show.version='git rev-parse --short HEAD'
+alias git.pack='git archive -o latest.zip HEAD'
 
 #-----------------------------------------------------[ Sqlite ]
 alias sqlite='sqlite3 -line'
