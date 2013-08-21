@@ -16,7 +16,7 @@ function _mimetype() {
    [[ -f $1 ]] && {
        local -a segment
        segment=(${(s:.:)1})
-       local suffix="${(j:.:)segment[2,-1]:=txt}"
+       local suffix="${(j:.:)segment[2,-1]}"
        print ${mimetype[$suffix]:=text/plain}
    }
 
@@ -54,15 +54,32 @@ function rmelem() {
     unset "dirmap[$k]"
 }
 
+function dump() {
+    for k in ${(ok)dirmap}; do
+        print "$k: $dirmap[$k]"
+    done
+}
+
+function text/plain() {
+    echo hello
+}
+
 function main() {
     typeset -gA dirmap
+    dirmap=()
+    local m
 
-    for f in **/*; do
-        dirmap[$f]=$(_mimetype $f)
-        addattr $f "basename" "$(basename $f)"
+    local -a nodes
+    nodes=(**/*)
+
+
+    for f in $nodes; do
+        m=$(_mimetype $f)
+        dirmap[$f]=$m
+        (( $+functions[$m] )) && 
     done
-
-    print -l ${(ok)dirmap}
+    
+    dump
 }
 
 main $*
