@@ -1,0 +1,68 @@
+#!/bin/zsh
+
+function mimetype() {
+    echo ${$(file --mime-type "$1")#*:}
+}
+
+typeset -gA mimetype
+mimetype[png]=image/png
+mimetype[9.png]=image/png
+mimetype[jpg]=image/jpg
+mimetype[zip]=application/zip
+mimetype[xml]=application/xml
+mimetype[txt]=text/plain
+
+function _mimetype() {
+   [[ -f $1 ]] && {
+       local -a segment
+       segment=(${(s:.:)1})
+       local suffix="${(j:.:)segment[2,-1]:=txt}"
+       print ${mimetype[$suffix]:=text/plain}
+   }
+
+   [[ -d $1 ]] && {
+       print "inode/directory"
+       return
+   }
+}
+
+function addattr() {
+    local k="$1"
+    local n="$2"
+    local v="$3"
+
+    [[ -n dirmap[$k] ]] && {
+        dirmap[$k/@${n}]="$v"
+        return
+    }
+    return 1
+}
+
+function addelem() {
+    local k="$1"
+    local v="$2"
+
+    [[ -n dirmap[$k] ]] && {
+        dirmap[$k]=$v    
+    }
+    return 1
+}
+
+# TODO: remove subnode
+function rmelem() {
+    local k="$1"
+    unset "dirmap[$k]"
+}
+
+function main() {
+    typeset -gA dirmap
+
+    for f in **/*; do
+        dirmap[$f]=$(_mimetype $f)
+        addattr $f "basename" "$(basename $f)"
+    done
+
+    print -l ${(ok)dirmap}
+}
+
+main $*
