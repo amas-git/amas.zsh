@@ -120,7 +120,7 @@ alias sqlite='sqlite3 -line'
 alias www.ip="curl ifconfig.me"
 
 # simple http server
-alias www.simple_httpd="python -m SimpleHTTPServer"
+alias www.simple_httpd="python -m SimpleHTTPServer || python -m http.server"
 alias du='du -h'
 alias df='df -h'
 alias c="git commit -am"
