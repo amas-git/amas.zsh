@@ -12,7 +12,18 @@ function writer.stdout() {
 function writer.file() {
     # TODO: append writer support ???
     local file="$1"
-    [[ $file == @stdout ]] && <<< ${(F)content} &&  content=() && return
+    [[ $file == @stdout ]] && { 
+        <<< ${(F)content} 
+        content=()
+        return
+    }
+
+    [[ $file == @sh ]] && {
+        eval "${(F)content}"
+        content=()
+        return
+    }
+
     [[ -z $content ]] && @EF "没有输出内容" && return
     [[ -z $file    ]] && @EF "没有输出文件" && return
     local parent=$(dirname $file)
