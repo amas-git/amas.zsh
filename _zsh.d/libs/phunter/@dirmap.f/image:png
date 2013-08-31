@@ -1,0 +1,68 @@
+#!/bin/zsh
+local target=$1
+local name=$(basename $target)
+local parent=$(dirname $target)
+
+[[ $parent == */(button|checkbox|togglebutton|listview) ]] || {
+    return
+}
+
+local id=${name%_*}
+local widget=$(basename $parent)
+local key=$widget/$id
+local suffix=$(_suffix $target)
+
+function handle_button() {
+
+    addelem $key $id
+
+    [[ $name == *normal* ]] && {
+        addattr $key src $target 
+    }
+
+    [[ $name == *pressed* ]] && {
+        addattr $key pressed true
+        addattr $key src.pressed $target 
+    }
+
+    [[ $name == *disabled* ]] && {
+        addattr $key enabled false 
+        addattr $key src.disabled $target 
+    }
+}
+
+function handle_checkbox() {
+    addelem $key $id
+}
+
+function handle_listview() {
+
+}
+
+function handle_togglebutton() {
+    addelem $key $id
+}
+
+function handle_attrs() {
+    [[ $target == *.attr ]] && {
+        local -a xs
+        local x
+        local pair
+
+        xs=("${(@f)$(< $target)}")
+
+        for x in $xs; do
+            pair=(${(s:=:)x})
+            addattr $key $pair[1] $pair[2,-1] 
+        done
+    }
+}
+
+# 处理属性文件
+[[ $suffix == attr ]] && {
+    handle_attrs
+    return
+}
+
+# 处理图片文件
+handle_$widget
