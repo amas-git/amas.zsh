@@ -65,6 +65,16 @@ function rmelem() {
     unset "dirmap[$k]"
 }
 
+function dump() {
+    for k in ${(ok)dirmap}; do
+        print "$k: $dirmap[$k]"
+    done
+}
+
+function text/plain() {
+    echo hello
+}
+
 function main() {
     typeset -gA dirmap
     dirmap=()
