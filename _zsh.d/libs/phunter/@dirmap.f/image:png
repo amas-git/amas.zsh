@@ -16,16 +16,16 @@ function handle_button() {
 
     addelem $key $id
 
-    [[ $name == *normal* ]] && {
+    [[ $name == *normal.(9.png|.png) ]] && {
         addattr $key src $target 
     }
 
-    [[ $name == *pressed* ]] && {
+    [[ $name == *pressed.(9.png|.png) ]] && {
         addattr $key pressed true
         addattr $key src.pressed $target 
     }
 
-    [[ $name == *disabled* ]] && {
+    [[ $name == *disabled.(9.png|.png) ]] && {
         addattr $key enabled false 
         addattr $key src.disabled $target 
     }

@@ -1,4 +1,6 @@
 #!/bin/zsh
+PH_LAST_SELECTED
+
 local selected
 function help() {
     print '
@@ -38,6 +40,7 @@ OPTIONS:
         $ZEDITOR "$selected"
     else
         z "$selected"
+        PH_LAST_SELECTED=$selected
     fi
 )
 
