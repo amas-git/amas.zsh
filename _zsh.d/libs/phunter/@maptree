@@ -1,0 +1,40 @@
+#!/bin/zsh
+(
+function instance() {
+    function keyset() {
+        for x in ${(k)map}; do
+            [[ "$(basename $x)" == @* ]] || echo $x 
+        done
+    }
+
+    function attrs() {
+        local key=$1
+        for x in ${(k)map}; do
+            [[ $(basename $x) == @* ]] && [[ $(dirname $x) == $key ]] && {
+                echo $x
+            }
+        done
+    }
+
+
+    local key=$1
+    [[ "$(basename $key)" == @* ]] && return
+    local subnode
+
+    # expose attrs
+    for attr in $(attrs $key); do
+        local ${$(basename $attr)#@}=$map[$attr]
+    done
+
+    # instance direct child node 
+    for x in $(keyset); do
+        [[ $(dirname $x) == $key ]] && {
+            subnode+=$(instance $x)
+        }
+    done
+
+    echo ${(e)map[$key]}
+}
+
+instance $*
+)

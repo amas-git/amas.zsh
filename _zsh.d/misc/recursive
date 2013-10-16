@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+max_nested_level() {
+    [[ -n $argv ]] && echo $1 && call $argv[2,-1]
+}
+
+#max_nested_level {1..1000}
+
+
+template='$1'
+
+function instance() {
+}
+
+instance $*
