@@ -2,14 +2,16 @@
 (
 function instance() {
     function keyset() {
-        for x in ${(k)map}; do
+        #for x in ${(k)map}; do
+        for x in $keyset; do
             [[ "$(basename $x)" == @* ]] || echo $x 
         done
     }
 
     function attrs() {
         local key=$1
-        for x in ${(k)map}; do
+        #for x in ${(k)map}; do
+        for x in $keyset; do
             [[ $(basename $x) == @* ]] && [[ $(dirname $x) == $key ]] && {
                 echo $x
             }
@@ -19,7 +21,7 @@ function instance() {
 
     local key=$1
     [[ "$(basename $key)" == @* ]] && return
-    local subnode
+    local -a subnode
 
     # expose attrs
     for attr in $(attrs $key); do
@@ -33,8 +35,42 @@ function instance() {
         }
     done
 
-    echo ${(e)map[$key]}
+    [[ $key =~ $pattern ]] && {
+        echo ${(e)_template}
+    }
+    #echo ${(e)map[$key]}
 }
 
+
+
+#~~
+typeset -gA map
+map[root]=
+map[root/@name]=root
+map[root/a]=
+map[root/a/@name]=nameA
+map[root/a/@age]=10
+map[root/b]=
+map[root/b/d]=
+map[root/b/d/@name]=D
+map[root/b/@name]=nameB
+map[root/b/@age]=20
+map[root/b/e]=
+map[root/b/e/@name]=E
+map[root/b/e/c]=
+map[root/b/e/c/@name]=CC
+map[root/b/e/x]=
+map[root/b/e/y/e]=
+map[root/b/e/y/e/@name]=EEE
+map[root/b/e/x/@name]=X
+
+local -a keyset
+keyset=(${(k)map})
+
+local _template="$(<&0)"
+local _pattern=$2
+
+#typeset -p _template
+#typeset -p _pattern
 instance $*
 )
