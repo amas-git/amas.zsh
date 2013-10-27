@@ -1,76 +1,225 @@
 #!/bin/zsh
 (
+function init() {
+   [[ -f $map ]] && rm $map
+
+   echo $map
+   touch $map
+   cat $map
+}
+
+function sync() {
+    typeset -p  kset >  $map
+    typeset -p  vset >> $map
+    typeset -p  aset >> $map
+    typeset -p  mset >> $map
+    typeset -p  tset >> $map
+}
+
+function del() {
+    local k=$1
+    
+    typeset -a kset
+    typeset -a vset
+    source $map
+
+    integer i=$kset[(i)$k]
+    (( i == $#kset+1 )) && {
+        return 1 
+    }
+
+    kset[i]=()
+    vset[i]=()
+
+    sync
+}
+
+function get() {
+    local k=$1
+    typeset -a kset
+    typeset -a vset
+    source $map
+
+    echo $vset[$kset[(i)$k]]  
+}
+
+function dump() {
+    typeset -a kset
+    typeset -a vset
+    source $map
+
+    for k in $kset; do
+        echo "$k=$vset[kset[(i)$k]]"
+    done
+}
+
+function put() {
+    function pute() {
+        integer i="$kset[(i)$1]"
+        if (( $i == $#kset + 1 )); then
+            kset+="$1"
+            vset+="$2"
+        else
+            vset[$i]=$2
+        fi
+    }
+
+    function puta() {
+        local -a xs
+        xs=(${(s: :)aset[@keyset:$k]})
+        xs+=$1
+        xs=(${(u)xs})
+        aset[@keyset:$k]=$xs
+        aset[${k}/@$1]=$2
+    }
+    
+    local k=$1 && shift
+    local v=$1 && shift
+
+
+    source $map
+    pute $k $v
+
+    integer i
+    for x in $argv; do
+        i=${x[(i)=]}         
+        puta "$x[1,i-1]" "$x[i+1,-1]"
+    done
+    
+    sync
+}
+
+function geta() {
+    local k=$1
+    local n=$2
+    local -a xs
+    
+    [[ -z $k ]] && return
+
+    source $map
+    xs=(${(s: :)aset[@keyset:$k]})
+
+    [[ -n $n ]] && {
+        if [[ -n $xs[(r)$n] ]]; then 
+            echo $aset[$k/@$n]
+        fi
+        return
+    }
+
+    for x in $xs; do
+        echo $x
+        echo $aset[$k/@$x]
+    done
+}
+
 function instance() {
-    function keyset() {
-        #for x in ${(k)map}; do
-        for x in $keyset; do
-            [[ "$(basename $x)" == @* ]] || echo $x 
-        done
-    }
-
-    function attrs() {
-        local key=$1
-        #for x in ${(k)map}; do
-        for x in $keyset; do
-            [[ $(basename $x) == @* ]] && [[ $(dirname $x) == $key ]] && {
-                echo $x
-            }
-        done
-    }
-
-
-    local key=$1
-    [[ "$(basename $key)" == @* ]] && return
+    local node=$1
+    local level=$2
     local -a subnode
-
+    local -a children
     # expose attrs
-    for attr in $(attrs $key); do
-        local ${$(basename $attr)#@}=$map[$attr]
+    for attr in ${(s: :)aset[@keyset:$node]}; do
+        local $attr=$aset[$node/@$attr]
     done
 
-    # instance direct child node 
-    for x in $(keyset); do
-        [[ $(dirname $x) == $key ]] && {
-            subnode+=$(instance $x)
+    # eval children
+    for child in $kset; do
+        [[ $(dirname $child) == $node ]] && {
+            subnode+="$(instance $template $child $[level+1])"
         }
     done
 
-    [[ $key =~ $pattern ]] && {
-        echo ${(e)_template}
-    }
-    #echo ${(e)map[$key]}
+    for m in $mset; do
+        [[ $node =~ $m ]] && {
+            template=${tset[$mset[(i)$m]]}
+            echo ${(e)template}
+            return
+        }
+    done
+    template=$subnode
+    echo ${(e)template}
 }
 
+function match() {
+    zparseopts -A _opts -K -D -- h=_flags c=_flags 
+    local template="$(<&0)"
+    source $map
 
+    [[ -n $_flags[(r)-c] ]] && {
+        mset=()
+        tset=()
+    }
+
+    mset+=$1
+    tset+=$template
+    #print -u2 $template
+    sync
+}
+
+function e() {
+    source $map
+    instance $1 0 
+}
+
+function w() {
+    source $map
+    local node=
+    local attr=
+    local template=
+
+    for node in $kset; do
+        for m in $mset; do
+            [[ $node =~ $m ]] && {
+                # expose attrs
+                for attr in ${(s: :)aset[@keyset:$node]}; do
+                    local $attr=$aset[$node/@$attr]
+                done
+
+                template=${tset[$mset[(i)$m]]}
+                echo ${(e)template}
+                break
+            }
+        done
+    done
+}
 
 #~~
-typeset -gA map
-map[root]=
-map[root/@name]=root
-map[root/a]=
-map[root/a/@name]=nameA
-map[root/a/@age]=10
-map[root/b]=
-map[root/b/d]=
-map[root/b/d/@name]=D
-map[root/b/@name]=nameB
-map[root/b/@age]=20
-map[root/b/e]=
-map[root/b/e/@name]=E
-map[root/b/e/c]=
-map[root/b/e/c/@name]=CC
-map[root/b/e/x]=
-map[root/b/e/y/e]=
-map[root/b/e/y/e/@name]=EEE
-map[root/b/e/x/@name]=X
+local _template=
+#"$(<&0)"
+local _pattern=
+local -a _cmds
+_cmds=(init put get del e w dump getai match)
 
-local -a keyset
-keyset=(${(k)map})
+local _storage=/tmp/.phunter/@maptree
 
-local _template="$(<&0)"
-local _pattern=$2
+[[ -d $_storage ]] || mkdir -p $_storage
 
-#typeset -p _template
-#typeset -p _pattern
-instance $*
+
+local _cmd=$1; shift
+typeset -A _opts
+typeset -a _flags
+#zparseopts -A _opts -K -D -- h=_flags m:=_opts s:=_opts
+
+local _name=default.map
+local map=$_storage/$_name
+
+
+_pattern=$_opts[-m]
+
+
+typeset -a kset
+typeset -a vset
+typeset -A aset
+typeset -a mset
+typeset -a tset
+
+# dispatcher
+[[ -n $_cmds[(r)$_cmd] ]] && {
+    $_cmd "$@"
+}
+
 )
+
+HELP="
+@maptree [${(j:|:)_cmds}]
+"
