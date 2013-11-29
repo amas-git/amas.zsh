@@ -9,11 +9,13 @@ function init() {
 }
 
 function sync() {
-    typeset -p  kset >  $map
-    typeset -p  vset >> $map
-    typeset -p  aset >> $map
-    typeset -p  mset >> $map
-    typeset -p  tset >> $map
+    typeset -p  kset  >  $map
+    typeset -p  vset  >> $map
+    typeset -p  aset  >> $map
+    typeset -p  mset  >> $map
+    typeset -p  tset  >> $map
+    typeset -p  ccset >> $map
+    typeset -p  ctset >> $map
 }
 
 function del() {
@@ -125,13 +127,15 @@ function instance() {
     # eval children
     for child in $kset; do
         [[ $(dirname $child) == $node ]] && {
-            subnode+="$(instance $template $child $[level+1])"
+            subnode+="$(instance $child $[level+1])"
         }
     done
 
+    integer __i
     for m in $mset; do
+        __i=$(( __i+1 ))
         [[ $node =~ $m ]] && {
-            template=${tset[$mset[(i)$m]]}
+            template=${tset[__i]]}
             echo ${(e)template}
             return
         }
@@ -139,6 +143,18 @@ function instance() {
     template=$subnode
     echo ${(e)template}
 }
+
+function if() {
+    local template="$(<&0)"
+    local condition="$1"
+    source $map
+
+    ccset+=$condition
+    ctset+=$template
+
+    sync
+}
+
 
 function match() {
     zparseopts -A _opts -K -D -- h=_flags c=_flags 
@@ -152,13 +168,47 @@ function match() {
 
     mset+=$1
     tset+=$template
-    #print -u2 $template
     sync
+}
+
+function extend() {
+    source $map
+
+    local node=$1
+    local level=${2:=0}
+    local -a subnode
+    # expose attrs
+    for attr in ${(s: :)aset[@keyset:$node]}; do
+        local $attr=$aset[$node/@$attr]
+    done
+
+    # eval children
+    for child in $kset; do
+        [[ $(dirname $child) == $node ]] && {
+            subnode+="$(extend $child $[level+1])"
+        }
+    done
+
+    integer __i=0
+    for c in $ccset; do
+        __i=$(( __i+1 ))
+        eval "$c" && {
+            template=$ctset[__i]
+            echo ${(e)template}
+            return
+        }
+    done
+    template=$subnode
+    echo ${(e)template}
 }
 
 function e() {
     source $map
     instance $1 0 
+}
+
+function eq() {
+    source $map
 }
 
 function w() {
@@ -168,18 +218,36 @@ function w() {
     local template=
 
     for node in $kset; do
+        integer __i=0
         for m in $mset; do
+            __i=$(( __i+1 ))
             [[ $node =~ $m ]] && {
                 # expose attrs
                 for attr in ${(s: :)aset[@keyset:$node]}; do
                     local $attr=$aset[$node/@$attr]
                 done
 
-                template=${tset[$mset[(i)$m]]}
+                template=$tset[__i]
                 echo ${(e)template}
                 break
             }
         done
+    done
+}
+
+function walk() {
+    local template="$(<&0)"
+    source $map
+    integer __i=0
+    for node in $kset; do
+        # expose attrs
+        for attr in ${(s: :)aset[@keyset:$node]}; do
+            local $attr=$aset[$node/@$attr]
+        done
+
+        eval "$1" && {
+            echo ${(e)template}
+        }
     done
 }
 
@@ -188,7 +256,7 @@ local _template=
 #"$(<&0)"
 local _pattern=
 local -a _cmds
-_cmds=(init put get del e w dump getai match)
+_cmds=(walk if init put get del e w dump getai match nz extend)
 
 local _storage=/tmp/.phunter/@maptree
 
@@ -212,6 +280,9 @@ typeset -a vset
 typeset -A aset
 typeset -a mset
 typeset -a tset
+
+typeset -a ccset
+typeset -a ctset
 
 # dispatcher
 [[ -n $_cmds[(r)$_cmd] ]] && {

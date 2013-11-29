@@ -134,7 +134,7 @@ function jwalk() {
     [[ $type == null    ]] && { return 0 }
     [[ $type == boolean ]] && { return 0 }
     [[ $type == array   ]] && { 
-        json=$(echo $json | jq ".[0]") 
+        json=$(echo $json | jq '.[1]') 
         [[ -z $json ]] && return
         jcontext="$jcontext/$(basename $jcontext)_elem"
         jscheme[$jcontext]=object
@@ -154,8 +154,10 @@ function jwalk() {
 }
 
 function main() {
+    local filename=${1%.*}
+    # echo $filename
     local json="$(< $1)"
-    local root=$2
+    local root=$filename
     (
         typeset -gA jscheme
         jscheme=()
