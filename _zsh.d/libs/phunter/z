@@ -16,7 +16,7 @@ OPTIONS:
         
         [[ -z $argv ]] && help && return 0
         zparseopts -A _opts -K -D -- I=flags H:=_opts
-        @EF $flags
+        # @EF $flags
         local Z_SOURCE="$1" && shift;
 
 
@@ -44,6 +44,10 @@ OPTIONS:
             _chunk=()
             _handler=
         }
+        
+        function D() {
+            print -u2 ${(F)argv}
+        }
 
         function @i() {
             # skip interactive mode
@@ -56,7 +60,14 @@ OPTIONS:
             local sh
             sh="$(<&0)"
             eval "$sh"
-            @EF "$sh"
+            D "$sh"
+        }
+
+        function @if() {
+            eval "$1" && {
+                local content="$(<&0)"
+                print "${(e)content}"
+            }
         }
 
         function @as() {
@@ -72,6 +83,8 @@ OPTIONS:
         # push content to named pipe
         function @append() {
             local content="$(<&0)"
+            set -A $1 "${(@P)1}" "${(e)content}"
+            # D $(typeset -p $1)
         }
 
         function @select() {
