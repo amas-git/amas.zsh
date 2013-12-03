@@ -1,0 +1,62 @@
+#!/bin/zsh
+
+function D() {
+    print -u2 ${FG[white]}$*
+}
+
+function zmachine() {
+    local _source
+    local -a estack
+    
+
+    integer lc=0 
+
+    function dump() {
+        for x in $estack; do
+            D " --: " + $x
+        done
+    }
+
+    function @if() {
+        echo "IFFFFFFFFF"
+    }
+
+    function @() {
+        print ${(eF)estack[2,-1]}
+    }
+
+    function zeval() {
+        [[ -n $estack ]] && {
+            D "  <Z-EVAL>: $estack[1] 参数: $estack[2,-1]"
+            eval $estack[1]
+            estack=()
+        }
+    }
+
+    [[ -n $1 ]] && {
+        _source="$(<$1)"
+    } || {
+        _source="$(<&))"
+    }
+    
+    estack+=@
+    for line in "${(@f)_source}"; do
+        (( lc++ ))
+
+        # instruction
+        [[ $line =~ '(^#-{4,120}\|)(\s*)(.*$)' ]] && {
+            zeval
+            estack+=${match[3]:=@}
+            continue
+        }
+
+        [[ -n $estack ]] && {  
+            estack+=$line
+        } || {
+            estack+=@
+        }
+    done
+    zeval
+}
+
+zmachine $*

@@ -19,7 +19,7 @@ OPTIONS:
         [[ -n $1 ]] && {
             local Z_SOURCE="$1" && shift;
             local _content="$(<$Z_SOURCE)"
-        }
+    
 
         [[ -z $argv ]] && {
             local _content="$(<&0)"
