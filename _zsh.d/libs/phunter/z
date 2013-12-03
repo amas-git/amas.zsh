@@ -14,11 +14,16 @@ OPTIONS:
 
         typeset -A _opts
         
-        [[ -z $argv ]] && help && return 0
         zparseopts -A _opts -K -D -- I=flags H:=_opts
         # @EF $flags
-        local Z_SOURCE="$1" && shift;
+        [[ -n $1 ]] && {
+            local Z_SOURCE="$1" && shift;
+            local _content="$(<$Z_SOURCE)"
+        }
 
+        [[ -z $argv ]] && {
+            local _content="$(<&0)"
+        }
 
         local _line _handler 
         local -a _chunk _echunk
@@ -95,7 +100,7 @@ OPTIONS:
             done
         }
 
-        for _line in "${(@f)$(<$Z_SOURCE)}"; do
+        for _line in "${(@f)_content}"; do
 
             if [[ $_line = (#b)\#----(-)#\|(\ )#(*) ]]; then
                 evalchunk
