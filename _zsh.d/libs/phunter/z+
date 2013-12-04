@@ -4,7 +4,7 @@ function D() {
     print -u2 ${FG[white]}$*
 }
 
-function zmachine() {
+function @z() {
     local _source
     local -a estack
     
@@ -17,18 +17,36 @@ function zmachine() {
         done
     }
 
-    function @if() {
-        echo "IFFFFFFFFF"
+    function @e() {
+        local sh
+        sh="$(<&0)"
+        eval "$sh"
     }
 
     function @() {
-        print ${(eF)estack[2,-1]}
+        (
+            local sh
+            sh="$(<&0)"
+            [[ -z $sh ]] && return
+            print "${(e)sh}"
+        )
     }
 
+    function @if() {
+        eval "$*" && {
+            skip=
+            @
+        } || {
+            skip=true
+        }
+        # echo "      $* -> $skip"
+    }
+
+    skip=
+    
     function zeval() {
         [[ -n $estack ]] && {
-            D "  <Z-EVAL>: $estack[1] 参数: $estack[2,-1]"
-            eval $estack[1]
+            <<< ${(F)estack[2,-1]} | eval "$estack[1]"
             estack=()
         }
     }
@@ -36,27 +54,37 @@ function zmachine() {
     [[ -n $1 ]] && {
         _source="$(<$1)"
     } || {
-        _source="$(<&))"
+        _source="$(<&0)"
     }
     
-    estack+=@
+    NEXT_MATCH='(^#-{4,120}\|)(\s*)(.*$)'
+    estack=(@)
     for line in "${(@f)_source}"; do
         (( lc++ ))
 
         # instruction
-        [[ $line =~ '(^#-{4,120}\|)(\s*)(.*$)' ]] && {
+        if [[ $line =~ '(^#-{4,120}\|)(\s*)(\[\[.*\]\])' ]]; then
+            # echo "   $match[3]"
+            eval "$match[3]" && {
+                skip=
+            } || {
+                skip=true
+            }
+        elif [[ $line =~ $NEXT_MATCH ]] && [[ -z $skip ]]; then
             zeval
-            estack+=${match[3]:=@}
+            estack=(${match[3]:=@})
             continue
-        }
+        fi
+        
+        [[ $skip == true ]] && continue
 
         [[ -n $estack ]] && {  
             estack+=$line
         } || {
-            estack+=@
+            estack=(@)
         }
     done
     zeval
 }
 
-zmachine $*
+@z $*
