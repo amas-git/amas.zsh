@@ -1,5 +1,5 @@
 #!/bin/zsh
-
+(
 function D() {
     print -u2 ${FG[white]}$*
 }
@@ -32,6 +32,10 @@ function @z() {
         )
     }
 
+    function @stop() {
+        exit
+    }
+
     function @if() {
         eval "$*" && {
             skip=
@@ -49,6 +53,10 @@ function @z() {
             <<< ${(F)estack[2,-1]} | eval "$estack[1]"
             estack=()
         }
+
+        estack=($argv)
+        D " +C: $1"
+        D " +P: $2"
     }
 
     [[ -n $1 ]] && {
@@ -57,27 +65,17 @@ function @z() {
         _source="$(<&0)"
     }
     
-    NEXT_MATCH='(^#-{4,120}\|)(\s*)(.*$)'
+    NEXT_MATCH='(^#-{4,120}\|)(\s*)(@\w*|\[\[)(.*$)'
     estack=(@)
     for line in "${(@f)_source}"; do
         (( lc++ ))
 
         # instruction
-        if [[ $line =~ '(^#-{4,120}\|)(\s*)(\[\[.*\]\])' ]]; then
-            # echo "   $match[3]"
-            eval "$match[3]" && {
-                skip=
-            } || {
-                skip=true
-            }
-        elif [[ $line =~ $NEXT_MATCH ]] && [[ -z $skip ]]; then
-            zeval
-            estack=(${match[3]:=@})
+        if [[ $line =~ $NEXT_MATCH ]]; then
+            zeval ${match[3]:=@} ${match[4]}
             continue
         fi
         
-        [[ $skip == true ]] && continue
-
         [[ -n $estack ]] && {  
             estack+=$line
         } || {
@@ -88,3 +86,4 @@ function @z() {
 }
 
 @z $*
+)
