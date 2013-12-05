@@ -1,7 +1,7 @@
 #!/bin/zsh
 (
 function D() {
-    print -u2 ${FG[white]}$*
+    print -u2 ${FG[white]}$*"$terminfo[sgr0]"
 }
 
 function @z() {
@@ -36,27 +36,43 @@ function @z() {
         exit
     }
 
-    function @if() {
-        eval "$*" && {
-            skip=
-            @
-        } || {
-            skip=true
-        }
-        # echo "      $* -> $skip"
-    }
+    typeset -A PHMAP
+    
+    
 
     skip=
-    
+
+    function @if() {
+        # echo " IF: $*"
+        eval "$*" && {
+            skip=
+            estack=(@)
+        } || {
+            skip=true
+            # estack=(@)
+        }
+    }
+
+   function @null() {
+       # estack=(@null)
+   }
+
     function zeval() {
+        set "${match[3]}" "${match[4]}"
         [[ -n $estack ]] && {
+            # D ""
+            # D "     PC : $pc"
+            # D "     [*]: $estack[1]"
+            # D "     [1]: $1$2"
+            # D "     {{{"
+            # D "         ${(F)estack[2,-1]} "
+            # D "     }}}"
             <<< ${(F)estack[2,-1]} | eval "$estack[1]"
             estack=()
         }
+        
 
-        estack=($argv)
-        D " +C: $1"
-        D " +P: $2"
+        estack=(${1:=@}$2)
     }
 
     [[ -n $1 ]] && {
@@ -65,22 +81,29 @@ function @z() {
         _source="$(<&0)"
     }
     
-    NEXT_MATCH='(^#-{4,120}\|)(\s*)(@\w*|\[\[)(.*$)'
+    pc=zeval
     estack=(@)
+    NEXT_MATCH='(^#-{4,120}\|)(\s*)([@]*\w*)(.*$)'
+
     for line in "${(@f)_source}"; do
         (( lc++ ))
 
         # instruction
-        if [[ $line =~ $NEXT_MATCH ]]; then
-            zeval ${match[3]:=@} ${match[4]}
-            continue
+        if [[ $line =~ '(^#-{4,120}\|)(\s*)(@if)(.*$)' ]]; then
+            eval "$match[4]" && {
+                zeval
+                estack=(@)
+                skip=
+            } || {
+                skip=_
+            }
+        elif [[ $line =~ '(^#-{4,120}\|)(\s*)([@]*\w*)(.*$)' ]] && [[ -z $skip ]]; then
+            zeval
+        else
+            [[ -n $estack ]] && [[ -z $skip ]] && {  
+                estack+=$line
+            }
         fi
-        
-        [[ -n $estack ]] && {  
-            estack+=$line
-        } || {
-            estack=(@)
-        }
     done
     zeval
 }
