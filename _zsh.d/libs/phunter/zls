@@ -39,7 +39,7 @@ OPTIONS:
     if [[ -n $flags[(r)-e] ]]; then
         $ZEDITOR "$selected"
     else
-        z "$selected"
+        z+ "$selected"
         PH_LAST_SELECTED=$selected
     fi
 )

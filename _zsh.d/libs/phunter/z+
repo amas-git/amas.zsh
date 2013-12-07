@@ -12,15 +12,13 @@ function @z() {
     integer lc=0 
 
     function dump() {
-        for x in $estack; do
-            D " --: " + $x
-        done
-    }
-
-    function @e() {
-        local sh
-        sh="$(<&0)"
-        eval "$sh"
+            # D ""
+            # D "     PC : $pc"
+            # D "     [*]: $estack[1]"
+            # D "     [1]: $1$2"
+            # D "     {{{"
+            # D "         ${(F)estack[2,-1]} "
+            # D "     }}}"
     }
 
     function @() {
@@ -36,76 +34,70 @@ function @z() {
         exit
     }
 
-    typeset -A PHMAP
-    
-    
+    function @i() {
+            # skip interactive mode
+        [[ -n $flags[(r)-I] ]] && return
+        local content="$(<&0)"
+        eval "$(<<< ${(e)content} | vipe)"
+    }
 
+    function @e() { local sh; sh="$(<&0)" ; eval "$sh"}
+    function @as() {  typeset -g ${1:=_as}="$(<&0)" }
+    function @echo() { local content="$(<&0)" && <<< ${(e)content} }
+    function @append() { local content="$(<&0)" && set -A $1 "${(@P)1}" "${(e)content}" }
+    function @null() {}
+ 
     skip=
-
     function @if() {
-        # echo " IF: $*"
         eval "$*" && {
             skip=
             estack=(@)
         } || {
             skip=true
-            # estack=(@)
         }
     }
 
-   function @null() {
-       # estack=(@null)
+
+
+   function zeval() {
+       set "${match[3]}" "${match[4]}"
+       [[ -n $estack ]] && {
+
+           <<< ${(F)estack[2,-1]} | eval "$estack[1]"
+           estack=()
+       }
+
+       estack=(${1:=@}$2)
    }
 
-    function zeval() {
-        set "${match[3]}" "${match[4]}"
-        [[ -n $estack ]] && {
-            # D ""
-            # D "     PC : $pc"
-            # D "     [*]: $estack[1]"
-            # D "     [1]: $1$2"
-            # D "     {{{"
-            # D "         ${(F)estack[2,-1]} "
-            # D "     }}}"
-            <<< ${(F)estack[2,-1]} | eval "$estack[1]"
-            estack=()
-        }
-        
-
-        estack=(${1:=@}$2)
-    }
-
-    [[ -n $1 ]] && {
-        _source="$(<$1)"
-    } || {
-        _source="$(<&0)"
-    }
-    
-    pc=zeval
-    estack=(@)
-    NEXT_MATCH='(^#-{4,120}\|)(\s*)([@]*\w*)(.*$)'
-
-    for line in "${(@f)_source}"; do
-        (( lc++ ))
+   [[ -n $1 ]] && {
+       _source="$(<$1)"
+   } || {
+       _source="$(<&0)"
+   }
+   
+   estack=(@)
+   for line in "${(@f)_source}"; do
+       (( lc++ ))
 
         # instruction
-        if [[ $line =~ '(^#-{4,120}\|)(\s*)(@if)(.*$)' ]]; then
-            eval "$match[4]" && {
-                zeval
-                estack=(@)
-                skip=
-            } || {
-                skip=_
-            }
-        elif [[ $line =~ '(^#-{4,120}\|)(\s*)([@]*\w*)(.*$)' ]] && [[ -z $skip ]]; then
-            zeval
-        else
-            [[ -n $estack ]] && [[ -z $skip ]] && {  
-                estack+=$line
-            }
-        fi
-    done
-    zeval
+       if [[ $line =~ '(^#-{4,120}[\|-]*)(\s*)(@if)(.*$)' ]]; then
+           eval "$match[4]" && {
+               zeval
+               estack=(@)
+               skip=
+           } || {
+               skip=_
+           }
+       elif [[ $line =~ '(^#-{4,120}[\|-])(\s*)([@]*\w*)(.*$)' ]] && [[ -z $skip ]]; then
+           zeval
+       else
+           [[ -n $estack ]] && [[ -z $skip ]] && {  
+               estack+=$line
+           }
+       fi
+   done
+   zeval
 }
 
 @z $*
