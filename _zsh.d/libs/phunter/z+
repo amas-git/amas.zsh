@@ -22,17 +22,13 @@ function @z() {
     }
 
     function @() {
-        (
-            local sh
-            sh="$(<&0)"
-            [[ -z $sh ]] && return
-            print "${(e)sh}"
-        )
+        local sh
+        sh="$(<&0)"
+        [[ -z $sh ]] && return
+        print "${(e)sh}"   
     }
 
-    function @stop() {
-        exit
-    }
+    
 
     function @i() {
             # skip interactive mode
@@ -46,7 +42,8 @@ function @z() {
     function @echo() { local content="$(<&0)" && <<< ${(e)content} }
     function @append() { local content="$(<&0)" && set -A $1 "${(@P)1}" "${(e)content}" }
     function @null() {}
- 
+    function @stop() { exit }
+
     skip=
     function @if() {
         eval "$*" && {
@@ -62,7 +59,6 @@ function @z() {
    function zeval() {
        set "${match[3]}" "${match[4]}"
        [[ -n $estack ]] && {
-
            <<< ${(F)estack[2,-1]} | eval "$estack[1]"
            estack=()
        }
@@ -71,7 +67,7 @@ function @z() {
    }
 
    [[ -n $1 ]] && {
-       _source="$(<$1)"
+       _source="$(<$1)" && shift
    } || {
        _source="$(<&0)"
    }
