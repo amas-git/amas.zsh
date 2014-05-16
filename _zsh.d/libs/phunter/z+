@@ -67,6 +67,7 @@ function @z() {
    }
 
    [[ -n $1 ]] && {
+       [[ -f $1 ]] || return
        _source="$(<$1)" && shift
    } || {
        _source="$(<&0)"

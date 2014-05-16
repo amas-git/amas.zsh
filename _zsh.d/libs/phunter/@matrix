@@ -1,0 +1,51 @@
+#!/bin/zsh
+#
+# @matrix header=a:b:c:d
+TEST_MATRIX='
+name age score   x
+a  18 100
+b  19 200
+"1 c"  39 189
+"2 c"
+"1"
+'
+# MAGIC HEADER(F1:F2:...:Fn) DIM(MxN)
+MATRIX_MAGIC=@MATRIX
+MATRIX_MLEN=$#MATRIX_META
+
+function main() {
+    #local content="$(<&0)"
+    local content=$TEST_MATRIX
+    local vname="matrix"
+    local fsep='\n'
+    local lsep="\n"
+    local -a contents
+    local -a header
+    contents=(${(f)content})
+    header=(${(s: :)contents[1]})
+    
+    typeset -ga $vname
+    set -A $vname $MATRIX_MAGIC ${(j= =)header} $#header
+    
+    for line in $contents[2,-1];do
+        xs=(${(z)line})
+        repeat $(($#header-$#xs)) { xs+= }
+        eval "$vname+="'("${(@)xs}")'
+        #echo "$xs [$#xs] : $(($#header-$#xs))"
+    done
+    echo "${(j:,:)matrix}"
+
+    ismatrix matrix ; echo "IS MATRIX $?"
+}
+
+function ismatrix() {
+    local vname=$1
+    [[ ${(tP)vname} == array ]] && [[ ${${(P)vname}[1]} == $MATRIX_MAGIC ]] && (( ${(P)#vname} >= 3 )) && return 0
+    return 1
+}
+
+function matrix_new() { }
+function matrix_add() { }
+
+main $*
+
