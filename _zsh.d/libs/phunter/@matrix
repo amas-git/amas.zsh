@@ -2,12 +2,9 @@
 #
 # @matrix header=a:b:c:d
 TEST_MATRIX='
-name age score   x
-a  18 100
-b  19 200
-"1 c"  39 189
-"2 c"
-"1"
+name value some xxx
+amas 19
+wang   
 '
 # MAGIC HEADER(F1:F2:...:Fn) DIM(MxN)
 MATRIX_MAGIC=@MATRIX
@@ -23,19 +20,19 @@ function main() {
     local -a header
     contents=(${(f)content})
     header=(${(s: :)contents[1]})
-    
     typeset -ga $vname
-    set -A $vname $MATRIX_MAGIC ${(j= =)header} $#header
+    local -i len=$#header 
     
+
+    set -A $vname $MATRIX_MAGIC $len $header
     for line in $contents[2,-1];do
         xs=(${(z)line})
-        repeat $(($#header-$#xs)) { xs+= }
-        eval "$vname+="'("${(@)xs}")'
-        #echo "$xs [$#xs] : $(($#header-$#xs))"
+        repeat $((len-$#xs)) { xs+= }
+        set -A $vname "${(@P)vname}" "${(@)xs}"
     done
     echo "${(j:,:)matrix}"
 
-    ismatrix matrix ; echo "IS MATRIX $?"
+    #ismatrix matrix ; echo "IS MATRIX $?"
 }
 
 function ismatrix() {
@@ -48,4 +45,3 @@ function matrix_new() { }
 function matrix_add() { }
 
 main $*
-
