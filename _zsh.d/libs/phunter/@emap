@@ -13,7 +13,7 @@ print '''
         local ___expr="$(<&0)"
 
         zparseopts -A omap -D -K -- c:=omap
-        
+
         # clone $argv
         ___argv=("${(@)argv}")
 
@@ -48,5 +48,4 @@ print '''
         print -l -- $___emap
     )
 }
-
-main $*
+main "$@"

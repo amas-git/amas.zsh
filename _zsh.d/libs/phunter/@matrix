@@ -2,37 +2,86 @@
 #
 # @matrix header=a:b:c:d
 TEST_MATRIX='
-name value some xxx
+[NAMES]
+NAME AGE SEX
 amas 19
-wang   
+wang 这个
+
+[MENUS]
+ID TITLE DESC
+delete "add nihao"
+add    delete 这个
 '
 # MAGIC HEADER(F1:F2:...:Fn) DIM(MxN)
 MATRIX_MAGIC=@MATRIX
-MATRIX_MLEN=$#MATRIX_META
 
 function main() {
-    #local content="$(<&0)"
-    local content=$TEST_MATRIX
-    local vname="matrix"
+    local content="$(<&0)"
+    # local content=$TEST_MATRIX
+   
     local fsep='\n'
     local lsep="\n"
     local -a contents
     local -a header
     contents=(${(f)content})
-    header=(${(s: :)contents[1]})
-    typeset -ga $vname
-    local -i len=$#header 
-    
 
-    set -A $vname $MATRIX_MAGIC $len $header
-    for line in $contents[2,-1];do
-        xs=(${(z)line})
-        repeat $((len-$#xs)) { xs+= }
-        set -A $vname "${(@P)vname}" "${(@)xs}"
+    local matrix_name
+    local -a matrix_contents
+    local -a matrix_header
+
+    function read_matrix() {
+ 
+
+        matrix_header=(${(s: :)matrix_contents[1]})
+        local vname=$matrix_name
+        local -a xs
+        local line
+        typeset -ga $vname
+        local -i len=$#matrix_header 
+        
+        # print "(read) > $matrix_name"
+        # print "       > HEADER=$len"
+
+        set -A $vname $MATRIX_MAGIC $len $matrix_header
+        for line in $matrix_contents[2,-1];do
+            xs=(${(z)line})
+            repeat $((len-$#xs)) { xs+= }
+            set -A $vname "${(@P)vname}" "${(@)xs}"
+        done
+
+        #typeset -p $matrix_name
+        #print_matrix $vname
+       
+        matrix_contents=()
+    }
+
+    function print_matrix() {
+        local _name=$1
+        local _col=${${(P)_name}[2]}
+        typeset -p $_name
+        eval "print -aC $_col "'"${(@)'$_name"[3,-1]}\""
+        # 上面这个太难懂了,参考下面这句
+        #print -aC $matrix "${(@)matrix[3,-1]}"
+    }
+
+    for line in $contents; do
+        # skip comment
+        [[ $line =~ '^#.*' ]] && continue
+        if [[ $line =~ '\[([a-Z]+)\]' ]]; then
+            [[ -n $matrix_contents ]] && {
+                read_matrix
+            }
+            matrix_name=$match[1]
+        else
+           [[ -n $matrix_name ]] && {
+               matrix_contents+=$line
+           }
+        fi
     done
-    echo "${(j:,:)matrix}"
 
-    #ismatrix matrix ; echo "IS MATRIX $?"
+    [[ -n $matrix_contents ]] && {
+        read_matrix
+    }
 }
 
 function ismatrix() {
@@ -40,8 +89,5 @@ function ismatrix() {
     [[ ${(tP)vname} == array ]] && [[ ${${(P)vname}[1]} == $MATRIX_MAGIC ]] && (( ${(P)#vname} >= 3 )) && return 0
     return 1
 }
-
-function matrix_new() { }
-function matrix_add() { }
 
 main $*
