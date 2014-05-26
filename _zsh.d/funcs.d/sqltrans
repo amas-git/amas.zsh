@@ -1,0 +1,13 @@
+#!/bin/zsh
+# @author: amas
+# @desc  : add enclosure transaction/commit sql statements to specify sql file 
+# $ sqltrans my.sql | sqlite3 x.db
+function main() {
+    (
+    echo 'BEGIN TRANSACTION;'
+    echo "$(<$1)"
+    echo 'COMMIT;'
+    )
+}
+
+main $*

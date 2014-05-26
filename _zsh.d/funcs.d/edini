@@ -1,0 +1,62 @@
+#!/bin/zsh
+# @author: amas
+# @desc  : 简易的ini文件编辑器
+
+HELP='
+$ upini <section-name/key> value
+
+比如: 欲修改改path字段
+-------------------------[x.ini]
+[log]
+path=/tmp/xxx
+--------------------------------
+
+欲修改改path字段
+$ upini x.ini "log/path" "/tmp/log"
+'
+
+function help() {
+    print -u2 "$1"
+    return $2
+}
+
+function main() {
+    local ini="$1"
+    local section="$2"
+    local value="$3"
+   
+    [[ -n $ini ]]     || return $(help "没有找到ini文件!" 1)
+    [[ -n $section ]] || return $(help "请指定需要修修改的字段" 2)
+    [[ -n $value ]]   || return $(help "没有指定字段值" 3)
+
+    local sname=$(dirname $2 2> /dev/null)
+    local skey=$(basename $2 2> /dev/null)
+
+    local _s
+    
+    function edit() {
+        for x in "${(@f)$(<$ini)}"; do
+            [[ $x[1] == "[" ]] && {
+                _s=${${x%]*}[2,-1]}
+                echo $x
+                continue
+            }
+    
+            kv=(${(s:=:)x})
+
+            [[ $sname == $_s && $skey == $kv[1] ]] && {
+                echo "$skey=$value\r" 
+                continue
+            }
+            echo $x
+        done
+    }
+   
+    local tmpfile="/tmp/ini_$RANDOM.ini"
+    edit > $tmpfile || {
+        return $(help "编辑失败" 1)
+    }
+
+    cp "$tmpfile" "$ini"
+}
+main $*

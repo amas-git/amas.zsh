@@ -1,0 +1,106 @@
+#!/bin/zsh
+# @author: amas
+# @desc  : download crash report from ftp server
+
+FTP_HOST=
+FTP_PASS=
+FTP_USER=
+HELP_MESG="\
+$ zftp.get [-clh] [-d <DIR>] [-m <PATTERN>]
+
+参数:
+ -h           : 帮助信息
+ -m <PATTERN> : 下载匹配指定<PATTERN>的文件
+ -l           : 打印文件列表，但是不下载
+ -d <DIR>     : 指定下载目录，默认当前路径
+ -c           : 下载前清空下载目录
+ -L N         : 只下载前N个崩溃报告
+ -t           : ** 按日期匹配，未实现 **
+ -H           : 根目录，默认为\$(date +%Y%m%d)
+示例:
+ * 打印201307开头的文件
+   $ zftp.get -l -m '201307*'
+ * 下载所有的压缩文件
+   $ zftp.get -m '*.zip'
+
+环境变量
+ * FTP_HOST : FTP服务器地址 (默认为: '$FTP_HOST')
+ * FTP_USER : FTP服务器帐号 (默认为: '$FTP_USER')
+ * FTP_PASS : FTP服务器密码 (默认为: '$FTP_PASS')
+ 
+"
+
+function mk_empty_dir() {
+    local dir=$1
+    [[ -d $dir ]] && rm -rf $dir
+    mkdir $dir
+}
+
+function help() {
+    [[ -n $1 ]] && print -u2 "出错啦: $1"
+    print -u2 $HELP_MESG
+    exit $2
+}
+
+function log() {
+    print -u2 "[$(date +%Y%m%d:%H%M%S)] ---: $*" 
+}
+
+
+function main() {
+    
+    typeset -A opts
+    local files
+    
+
+    opts=()
+    flags=()
+    [[ -z $argv ]] && help "" 1
+    zparseopts -A opts -E -D -K -- l=flags h=flags c=flags m:=opts d:=opts L:=opts H:=opts
+    [[ $? != 0 || -n $flags[(r)h] ]] && help "" 1
+
+    autoload zfinit
+    zfinit
+
+    local pattern="${opts[-m]:=*}"
+    local download=${opts[-d]:=.}
+    local limit=${opts[-L]:=-1}
+    local H=${opts[-H]:=$(date +%Y%m%d)}
+
+    [[ -n $flags[(r)-c] ]] && ( [[ -d $download ]] && rm  $download/*.zip ) 
+    [[ -d $download ]] || ( [[ -n $download ]] && mkdir $download )
+
+    (
+                # 打开FTP
+        cd $download
+        zftp open $FTP_HOST $FTP_USER $FTP_PASS || return -1
+        [[ -n $H ]] && {
+            zfcd $H 2> /dev/null || {
+                log "没有找到指定的根目录: '$H'"
+                return
+                         }
+            log "切换到'$H'目录下"
+                 }
+
+        # 列出匹配文件但不下载
+        if [[ -n $flags[(r)-l] ]]; then
+            files=($(zfls $pattern))
+            print -l $files[1,$limit]
+            zftp close
+            return
+        fi
+
+        # 下载
+        if [[ -n $opts[-d] ]]; then
+            log "开始下载: '$pattern' 服务器上文件推多，骚等一下下"
+            files=($(zfls $pattern))
+            zfget ${files[1,$limit]}
+            log "下载完毕"
+        fi
+
+        # 关闭FTP
+        zftp close
+    )
+}
+
+main $*
