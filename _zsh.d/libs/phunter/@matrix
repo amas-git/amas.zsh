@@ -67,7 +67,7 @@ function main() {
     for line in $contents; do
         # skip comment
         [[ $line =~ '^#.*' ]] && continue
-        if [[ $line =~ '\[([a-Z]+)\]' ]]; then
+        if [[ $line =~ '\[([a-Z_]+)\]' ]]; then
             [[ -n $matrix_contents ]] && {
                 read_matrix
             }
