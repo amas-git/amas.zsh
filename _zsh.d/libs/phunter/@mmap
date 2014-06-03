@@ -6,14 +6,17 @@ function ismatrix() {
     return 1
 }
 
-local mname=$1
-[[ -z $mname ]] && return 1 
+local ___input="$(<&0)"
 
-ismatrix $mname || return 1
+for mname in $argv; do
+    [[ -z $mname ]] && continue 
 
-local header_len=${${(P)mname}[2]}
-local -a xs
-local header=
-header=${${(P)mname}[3,3+$header_len-1]}
-xs=("${(@P)mname}")
-@emap -c $header -- "${(@)xs[3+$header_len,-1]}"
+    ismatrix $mname || continue
+
+    local header_len=${${(P)mname}[2]}
+    local -a xs
+    local header=
+    header=${${(P)mname}[3,3+$header_len-1]}
+    xs=("${(@P)mname}")
+    <<< $___input @emap -c $header -- "${(@)xs[3+$header_len,-1]}"
+done
