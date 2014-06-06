@@ -6,7 +6,14 @@ function ismatrix() {
     return 1
 }
 
+
+local ___oname=$argv[$argv[(i)--]+1]
 local ___input="$(<&0)"
+
+# define output variable array
+[[ -n $___oname ]] && {
+    typeset -ga $___oname
+}
 
 for mname in $argv; do
     [[ -z $mname ]] && continue 
@@ -18,5 +25,5 @@ for mname in $argv; do
     local header=
     header=${${(P)mname}[3,3+$header_len-1]}
     xs=("${(@P)mname}")
-    <<< $___input @emap -c $header -- "${(@)xs[3+$header_len,-1]}"
+    <<< $___input @emap -c $header -o "$___oname" -- "${(@)xs[3+$header_len,-1]}"
 done
