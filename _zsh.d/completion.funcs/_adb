@@ -39,6 +39,9 @@ _adb_command() {
         'install:push this package file to the device and install it'
         'uninstall:remove this app package from the device'
         'ppp:Run PPP over US'
+        'reboot:reboots the device, optionally into the bootloader or recovery program'
+        'reboot-bootloader:reboots the device into the bootloader'
+        'root:restarts the adbd daemon with root permissions'
         'test:test'
     )
 
