@@ -1,18 +1,18 @@
 #!/bin/zsh
 function main() {
-    ( # remove subshell may case outout memory, why?        
+    #( # remove subshell may case outout memory, why?        
         help() {
 print '''
 
 '''
         }
-        ___emap=()
+        local -a ___emap
         local -A omap
         local -i ___i ___row col_size
         local -a ___columns ___argv
         local ___expr="$(<&0)"
 
-        zparseopts -A omap -D -K -- c:=omap
+        zparseopts -A omap -D -K -- c:=omap o:=omap
 
         # clone $argv
         ___argv=("${(@)argv}")
@@ -45,7 +45,12 @@ print '''
             emap.expand "${(@)___argv[___i*col_size+1,(___i+1)*col_size]}"
         done
 
+        [[ -n $omap[-o] ]]  && {
+            local ___oname=$omap[-o]
+            set -A $___oname "${(@P)___oname}" "${(@)___emap}"
+            return
+        }
         print -l -- $___emap
-    )
+    #)
 }
 main "$@"

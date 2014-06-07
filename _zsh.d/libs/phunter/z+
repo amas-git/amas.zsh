@@ -45,7 +45,7 @@ function @z() {
     function @e() { local sh; sh="$(<&0)" ; eval "$sh"}
     function @as() {  typeset -g ${1:=_as}="$(<&0)" }
     function @echo() { local content="$(<&0)" && <<< ${(e)content} }
-    function @append() { local content="$(<&0)" && set -A $1 "${(@P)1}" "${(e)content}" }
+    function @append() { local content="$(<&0)" && set -A $1 "${(@P)1}" "${content}" }
     function @null() {}
     function @stop() { exit }
 
