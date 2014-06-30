@@ -1,0 +1,57 @@
+#--------------------------------------------------------------------| @i
+CMD=cabal
+
+#--------------------------------------------------------------------| @ii | @matrix
+[SUBCMD]
+ID       DESC
+install  "<local> <remote> copy file/dir to device"
+update   "<remote> <local>copy file/dir from device"
+#--------------------------------------------------------------------|
+#compdef $CMD
+local ops
+
+
+_$CMD() {
+    ops=(
+        '-V[Version]'
+        '-h[Help message]'   
+    )
+    _arguments -s \$ops[@] '*::$CMD command:_${CMD}_command'
+}
+
+(( \$+functions[_${CMD}_command] )) ||
+_${CMD}_command() {
+    local ret
+    ${CMD}_cmds=(
+#--------------------------------------------------------------------| @mmap SUBCMD
+        '$ID:${(Q)DESC}'
+#--------------------------------------------------------------------
+    )
+
+
+    # dispatch function
+    if (( CURRENT == 1 )); then
+        _describe -t ${CMD}-command '${CMD} command' ${CMD}_cmds 
+    else
+        local cmd=\${words[1]}
+        local curcontext="\$curcontext"
+        curcontext="\${curcontext%:*:*}:${CMD}-\$cmd"
+        _call_function ret _${CMD}_command_$cmd || _message "no more arguments after \$cmd"
+    fi
+    
+    return ret
+}
+
+#--------------------------------------------------------------------| @mmap SUBCMD
+
+_${CMD}_command_${ID}() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g \*.apk'
+    )
+    _arguments -s \$ops[@]   
+    return 0
+}  
+#--------------------------------------------------------------------
+

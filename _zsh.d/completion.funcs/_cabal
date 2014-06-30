@@ -1,0 +1,262 @@
+#compdef cabal
+local ops
+
+
+_cabal() {
+    ops=(
+        '-V[Version]'
+        '-h[Help message]'   
+    )
+    _arguments -s $ops[@] '*::cabal command:_cabal_command'
+}
+
+(( $+functions[_cabal_command] )) ||
+_cabal_command() {
+    local ret
+    cabal_cmds=(
+        'install:Installs a list of packages'
+        'update:Updates list of known packages'
+        'list:List packages matching a search string'
+        'info:Display detailed information about a particular package'
+        'unpack:Unpacks packages for user inspection'
+        'check:Check the package for common mistakes'
+        'sdist:Generate a source distribution file (.tar.gz)'
+        'upload:Uploads source packages to Hackage'
+        'report:Upload build reports to a remote server'
+        'init:Interactively create a .cabal file'
+        'configure:Prepare to build the package'
+        'build:Make this package ready for installation'
+        'copy:Copy the files into the install locations'
+        'haddock:Generate Haddock HTML documentation'
+        'clean:Clean up after a build'
+        'hscolour:Generate HsColour colourised code, in HTML format'
+        'register:Register this package with the compiler'
+        'test:Run the test suite, if any (configure with UserHooks)'
+        'bench:Run the benchmark, if any (configure with UserHooks)'
+        'upgrade:(command disabled, use install instead)'
+        'help:Help about commands'
+    )
+
+
+    # dispatch function
+    if (( CURRENT == 1 )); then
+        _describe -t cabal-command 'cabal command' cabal_cmds 
+    else
+        local cmd=${words[1]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:cabal-$cmd"
+        _call_function ret _cabal_command_ || _message "no more arguments after $cmd"
+    fi
+    
+    return ret
+}
+
+_cabal_command_install() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_update() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_list() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_info() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_unpack() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_check() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_sdist() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_upload() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_report() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_init() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_configure() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_build() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_copy() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_haddock() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_clean() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_hscolour() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_register() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_test() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_bench() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_upgrade() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
+
+_cabal_command_help() {
+    ops=(
+        '(-r)-l+[forward-lock the app]'
+        '(-l)-r+[reinstall the app, keeping its dat]'
+        ':apk file:_files -g *.apk'
+    )
+    _arguments -s $ops[@]   
+    return 0
+}  
