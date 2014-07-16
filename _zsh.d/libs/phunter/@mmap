@@ -1,5 +1,12 @@
 #!/bin/zsh
 MATRIX_MAGIC=@MATRIX
+
+local -A omap
+local ___filter
+
+zparseopts -A omap -D -K -- c:=omap o:=omap f:=omap
+___filter=$omap[-f]
+
 function ismatrix() {
     local vname=$1
     [[ ${(tP)vname} == array ]] && [[ ${${(P)vname}[1]} == $MATRIX_MAGIC ]] && (( ${(P)#vname} >= 3 )) && return 0
@@ -25,5 +32,5 @@ for mname in $argv; do
     local header=
     header=${${(P)mname}[3,3+$header_len-1]}
     xs=("${(@P)mname}")
-    <<< $___input @emap -c $header -o "$___oname" -- "${(@)xs[3+$header_len,-1]}"
+    <<< $___input @emap -c $header -o "$___oname" -f "$___filter" -- "${(@)xs[3+$header_len,-1]}"
 done
