@@ -2,8 +2,9 @@
 function main() {
     #( # remove subshell may case outout memory, why?        
         help() {
-print '''
-
+print -u2 '''
+    -f : filter
+    -c : col number
 '''
         }
         local -a ___emap
@@ -11,8 +12,9 @@ print '''
         local -i ___i ___row col_size
         local -a ___columns ___argv
         local ___expr="$(<&0)"
+        local ___filter
 
-        zparseopts -A omap -D -K -- c:=omap o:=omap
+        zparseopts -A omap -D -K -- c:=omap o:=omap f:=omap
 
         # clone $argv
         ___argv=("${(@)argv}")
@@ -23,6 +25,8 @@ print '''
         else
             col_size=${omap[-c]:=1}
         fi
+
+        __filter=${omap[-f]}
         
         # check tuple number
         (( col_size > 0 && $#___argv%$col_size != 0 )) && print -u2 "$#___argv elements can't group by $col_size" && return -1
@@ -37,6 +41,10 @@ print '''
                 local "$___name"=$argv[___i]
                 (( ++___i ))
             done
+            # binded , do filter test
+            [[ -n $__filter ]] && {
+                eval $__filter || return
+            }
             ___emap+=${(e)___expr}
         }
 
