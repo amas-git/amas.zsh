@@ -143,3 +143,6 @@ alias xml.format="xmlstarlet fo -s 4"
 alias functions.name="functions  | sed -n 's/\(.*\)\ ().*{$/\1/p'"
 #-----------------------------------------------------[ CouchDB ]
 alias couch.futon='chromium http://127.0.0.1:5984/_utils'
+#-----------------------------------------------------[ Android ]
+# print dex file header
+alias dex.header="dexdump -f classes.dex | sed  '/^$/Q'"

@@ -30,17 +30,22 @@ function main() {
     local -a matrix_header
 
     function read_matrix() {
- 
+        local vname=${${(s=::=)section_name}[1]}
+        local vtype=${${(s=::=)section_name}[2]} 
 
-        matrix_header=(${(s: :)matrix_contents[1]})
-        local vname=$matrix_name
-        local -a xs
         local line
+        [[ $vtype == map ]] && {
+            typeset -gA $vname
+            for line in $matrix_contents;do
+                #TODO    
+            done
+        }
+
+        local -a xs
         typeset -ga $vname
+        matrix_header=(${(s: :)matrix_contents[1]})
         local -i len=$#matrix_header 
         
-        # print "(read) > $matrix_name"
-        # print "       > HEADER=$len"
 
         set -A $vname $MATRIX_MAGIC $len $matrix_header
         for line in $matrix_contents[2,-1];do
@@ -49,10 +54,14 @@ function main() {
             set -A $vname "${(@P)vname}" "${(@)xs}"
         done
 
-        #typeset -p $matrix_name
-        #print_matrix $vname
        
+        reset
+    }
+
+    function reset() {
         matrix_contents=()
+        section_name=
+        section_type= 
     }
 
     function print_matrix() {
@@ -67,13 +76,15 @@ function main() {
     for line in $contents; do
         # skip comment
         [[ $line =~ '^#.*' ]] && continue
-        if [[ $line =~ '\[([a-Z_]+)\]' ]]; then
+        if [[ $line =~ '\[([a-Z_:]+)\]' ]]; then
             [[ -n $matrix_contents ]] && {
                 read_matrix
             }
-            matrix_name=$match[1]
+
+            # NAME::TYPE
+            section_name=$match[1]
         else
-           [[ -n $matrix_name ]] && {
+           [[ -n $section_name ]] && {
                matrix_contents+=$line
            }
         fi
