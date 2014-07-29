@@ -28,6 +28,7 @@ function main() {
     local matrix_name
     local -a matrix_contents
     local -a matrix_header
+    local -a xs
 
     function read_matrix() {
         local vname=${${(s=::=)section_name}[1]}
@@ -37,11 +38,13 @@ function main() {
         [[ $vtype == map ]] && {
             typeset -gA $vname
             for line in $matrix_contents;do
-                #TODO    
+                xs+=(${(z)line})
             done
+            set -A $vname "${(@)xs}"
+            reset
+            return
         }
 
-        local -a xs
         typeset -ga $vname
         matrix_header=(${(s: :)matrix_contents[1]})
         local -i len=$#matrix_header 
