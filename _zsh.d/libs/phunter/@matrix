@@ -31,8 +31,10 @@ function main() {
     local -a xs
 
     function read_matrix() {
-        local vname=${${(s=::=)section_name}[1]}
-        local vtype=${${(s=::=)section_name}[2]} 
+        local -a _nt_
+        _nt_=(${(s=::=)section_name}) 
+        local vname=$_nt_[1]
+        local vtype=$_nt_[2]
 
         local line
         [[ $vtype == map ]] && {
