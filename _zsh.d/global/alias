@@ -146,3 +146,7 @@ alias couch.futon='chromium http://127.0.0.1:5984/_utils'
 #-----------------------------------------------------[ Android ]
 # print dex file header
 alias dex.header="dexdump -f classes.dex | sed  '/^$/Q'"
+alias android.cpu='adb shell cat /proc/cpuinfo'
+alias android.cpu.core='adb shell cat /proc/cpuinfo | grep processor | wc -l'
+alias android.load='watch -n 1 cat /proc/loadavg'
+alias android.vmstat='adb shell vmstat'
