@@ -120,7 +120,6 @@ alias sqlite='sqlite3 -line'
 alias www.ip="curl ifconfig.me"
 
 # simple http server
-alias www.simple_httpd="python -m SimpleHTTPServer || python -m http.server"
 alias du='du -h'
 alias df='df -h'
 alias c="git commit -am"
@@ -150,3 +149,14 @@ alias android.cpu='adb shell cat /proc/cpuinfo'
 alias android.cpu.core='adb shell cat /proc/cpuinfo | grep processor | wc -l'
 alias android.load='watch -n 1 cat /proc/loadavg'
 alias android.vmstat='adb shell vmstat'
+
+functions ip.lan() {
+    ip addr show | sed -n '/ether/ {n;p}' | awk '{print $2}' | sed -e 's/\/.*//g' 
+}
+
+function www.httpd() {
+    print http://$(ip.lan):8000
+    print
+    print
+    python -m SimpleHTTPServer || python -m http.server
+}
