@@ -54,7 +54,7 @@ alias pacman-which='sudo pacman -Qo'
 alias pacman-download='sudo pacman -Sw'
 alias pacman-add-local='sudo pacman -U'
 alias pacman.self-update=''
-
+alias pacman.installed="fc -nl 1 | grep '^sudo pacman -S ' | cut -d ' ' -f 4- "
 #仅在你确定不需要做任何软件包降级工作时才这样做。pacman -Scc会从缓存中删除所有软件包。
 alias pacman-clear-cache='sudo pacman -Scc'
 alias pacman-conf='vim /etc/pacman.conf'
@@ -160,3 +160,6 @@ function www.httpd() {
     print
     python -m SimpleHTTPServer || python -m http.server
 }
+
+
+

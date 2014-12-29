@@ -38,15 +38,10 @@ function require-activity() {
 # backward search to find android project home
 find-android-project-home() {
     local dir=$(pwd)
-    local subdir="/$*"
-    
-    while [[ $dir != / ]]; do
-        [[ -f "$dir/AndroidManifest.xml" && -d "$dir/src" && -d "$dir/res" ]] && break
-        dir=$(dirname $dir)
-    done
-    
-    [[ $dir == "/" ]] && return -1
-    print "$dir$subdir"
+
+    local manifest=$(echo */**/main/AndroidManifest.xml)
+
+    [[ -n $manifest ]] && print $dir/$manifest
 }
 
 #------------------------------------------------------------------------[ XmlHelper Functions ]
@@ -431,6 +426,17 @@ function android.layout() {
 }
 
 
+function android.project.home() {
+    local dir=$(pwd)
+    [[ -f AndroidManifest.xml ]] && {
+        print $dir
+        return
+    }
+
+    
+    local manifest=$(echo */**/main/AndroidManifest.xml)
+    [[ -n $manifest ]] && print $dir/$manifest
+}
 
 function +android() {
     help() {
@@ -448,9 +454,9 @@ function +android() {
     R=
     P=
     LAYOUT=
-    PROJECT_HOME=
-    isAndroidProject || return
-    PROJECT_HOME=$(project home)
+    PROJECT_HOME=$(android.project.home)
+    [[ -z $PROJECT_HOME ]] && return
+
     LAYOUT=${PROJECT_HOME}res/layout/
     P=$(android.package)
     R=${P}.R
