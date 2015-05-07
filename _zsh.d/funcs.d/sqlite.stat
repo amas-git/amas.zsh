@@ -1,0 +1,32 @@
+#!/bin/zsh
+
+local bin=$(basename $0)
+
+help() {
+    print "
+$ $basename <sqlite-db> 
+"
+}
+
+local db=$1
+local -a tables
+local sqlite=${SQLITE:=sqlite3}
+
+[[ -z $db ]] && help && exit 1
+
+
+tables() {
+    $sqlite $1 .tables
+}
+
+table_count() {
+    local n=$($sqlite $1 "SELECT count(*) FROM $2;")
+    print "$2 ($n)"
+}
+
+tables=($(tables $db))
+
+
+for table in $tables; do
+    table_count $db $table
+done
