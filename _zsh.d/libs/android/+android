@@ -1,29 +1,30 @@
 #!/bin/zsh
-function main() {
-    help() {
-        print -u2 "
-在android工程目录下执行此命令，将引入一些常用的变量，包括:
- * M : AndroidManifest.xml文件的路径('$M')
- * P : 应用的包名('$P')
- * R : R的完整类名('$R')
- * PROJECT_HOME: 工程路径('$PROJECT_HOME')
- * LAYOUT: layout文件目录('$LAYOUT')
-"
-    }
-    
-    M=
-    R=
-    P=
-    LAYOUT=
-    PROJECT_HOME=
-    isAndroidProject || return
-    PROJECT_HOME=$(project home)
-    LAYOUT=${PROJECT_HOME}res/layout/
-    P=$(android.package)
-    R=${P}.R
-    M=${PROJECT_HOME}AndroidManifest.xml
+local help='''
 
+EXPORT:
+ * ANDROID_PROJECT_HOME = $ANDROID_PROJECT_HOME
+ * ANDROID_PROJECT_TYPE = eclipse|studio
+ * ANDROID_PACKAGE_NAME = $ANDROID_PACKAGE_NAME
+ * ANDROID_RES          = $ANDROID_RES
+ * ANDROID_JAVA         = $ANDROID_JAVA
+ * ANDROID_LAYOUT       = $ANDROID_LAYOUT
+ * ANDROID_MANIFEST     = $ANDROID_MANIFEST
+'''
+
+
+help() { print -u2 ${(e)help} }
+
+function main() {
+    local ms
+
+    ANDROID_MANIFEST=$(android.project.manifest)
+    ANDROID_PROJECT_HOME=$(dirname $ANDROID_MANIFEST)
+    ANDROID_RES=$ANDROID_PROJECT_HOME/res/
+    ANDROID_JAVA=$ANDROID_PROJECT_HOME/java/
+    ANDROID_LAYOUT=$ANDROID_PROJECT_HOME/res/layout/
+    ANDROID_PACKAGE_NAME=$(android.manifest $ANDROID_MANIFEST @package)
+   
     help
 }
 
-main $*
+main

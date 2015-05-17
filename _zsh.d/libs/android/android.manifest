@@ -1,0 +1,51 @@
+#!/bin/zsh
+help='''
+通过XPATH获取AndroidManifest.xml中的信息
+
+使用方法:
+$ android.manifest @package
+$ android.manifest AndroidManifest.xml @package
+$ android.manifest AndroidManifest.xml @android:versionName 
+$ android.manifest AndroidManifest.xml @android:versionCode
+$ android.manifest AndroidManifest.xml application/activity
+
+如果不指定AndroidManifest.xml, 程序将自动寻找它
+
+元素节点的XPATH:
+manifest
+manifest/uses-sdk
+manifest/uses-permission
+manifest/application
+manifest/application/activity
+manifest/application/activity/intent-filter
+manifest/application/activity/intent-filter/action
+manifest/application/activity/intent-filter/category
+manifest/application/provider
+manifest/application/receiver
+manifest/application/receiver/intent-filter
+manifest/application/receiver/intent-filter/action
+manifest/application/receiver/intent-filter/data
+manifest/application/service
+manifest/application/service/intent-filter
+manifest/application/service/intent-filter/action
+manifest/application/meta-dat
+'''
+
+main() {
+    local manifest=${1:=AndroidManifest.xml}
+    local xpath=${2:=@package}
+    local opt=-v
+
+    [[ -f $manifest ]] || {
+        manifest=$(android.project.manifest) 
+        xpath=$1
+    }
+    xpath=manifest/$xpath
+    
+    [[ $xpath =~ 'manifest(/application|/uses-sdk|/uses-permission|/meta-dat)(/activity|/provider|/service|/receiver|)$' ]] && {
+        opt=-c
+    }
+    xml sel -t -m  $xpath $opt . "$manifest"
+}
+main "$@"
+

@@ -438,29 +438,4 @@ function android.project.home() {
     [[ -n $manifest ]] && print $dir/$manifest
 }
 
-function +android() {
-    help() {
-        print -u2 "
-在android工程目录下执行此命令，将引入一些常用的变量，包括:
- * M : AndroidManifest.xml文件的路径('$M')
- * P : 应用的包名('$P')
- * R : R的完整类名('$R')
- * PROJECT_HOME: 工程路径('$PROJECT_HOME')
- * LAYOUT: layout文件目录('$LAYOUT')
-"
-    }
-    
-    M=
-    R=
-    P=
-    LAYOUT=
-    PROJECT_HOME=$(android.project.home)
-    [[ -z $PROJECT_HOME ]] && return
 
-    LAYOUT=${PROJECT_HOME}res/layout/
-    P=$(android.package)
-    R=${P}.R
-    M=${PROJECT_HOME}AndroidManifest.xml
-
-    help
-}

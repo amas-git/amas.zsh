@@ -144,6 +144,7 @@ function autoload.d() {
 
 #-------------------------------------------------------------- [ Zsh.PreludeFunctions ]
 autoload.d ~zshd/funcs.d ~self.fun 
+autoload.d ~zshd/libs/amasm
 autoload.d ~zshd/libs/android 
 autoload.d ~zshd/libs/java
 autoload.d ~zshd/libs/xml

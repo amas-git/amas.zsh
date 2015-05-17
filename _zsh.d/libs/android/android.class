@@ -1,16 +1,20 @@
 #!/bin/zsh
+HELP='''
+通过类名获取类文件的路径
+ $ android.class com.foo.MainActivity
+ $ android.class  
+ $ android.class .ui.DemosActivity 
+'''
+#--------------------------------------------------[ body ]
+local class=${1:=$CLASS}
 
-function help() {
-    print -- "\$ $1 [.]foo.bar.Class"
+[[ -z $ANDROID_PROJECT_HOME ]] && {
+    +android
 }
 
-#--------------------------------------------------[ body ]
-
-local class=${1:=$CLASS}
-local package=$(android.package)
-
-[[ -z $class ]] && help $(basename $0) && return
+[[ -z $class ]] && print -u2 $HELP && return
     
 # full class name
-[[ $class[1] == '.' ]] && class=${package}${class}
-<<< $(project home src/${${class#.}//.//}.java)
+[[ $class[1] == '.' ]] && class=${ANDROID_PACKAGE_NAME}${class}
+
+<<< $ANDROID_JAVA${${class#.}//.//}.java

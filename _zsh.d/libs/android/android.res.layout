@@ -1,4 +1,6 @@
 #!/bin/zsh
+[[ -z $ANDROID_LAYOUT ]] && {
+    +android 2> /dev/null 
+}
 
-local id=${1:=unknown}
-echo $(project home res/layout/${id}.xml)
+print ${ANDROID_LAYOUT}${1}
