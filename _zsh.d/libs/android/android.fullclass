@@ -2,7 +2,7 @@
 
 function main() {
     local class=$1
-    local package=$(android.package)
+    local package=$(android.meta-dat @package)
     if [[ "$class[1]" == "." ]]; then
         echo $package$class
     else

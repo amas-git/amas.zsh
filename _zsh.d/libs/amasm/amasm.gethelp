@@ -1,0 +1,17 @@
+#!/bin/zsh
+# $0
+# This is 
+#
+#
+
+function catn() {
+    local target=$1
+    local -a c
+    c=("$(<$target)")
+    for l in $c; do
+        print $l
+    done
+}
+
+print $0
+catn $0
