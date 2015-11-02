@@ -8,5 +8,6 @@
     [[ -n $su ]] && cmd+=(su -c) 
     
     cmd+=$remount
+    print "exec : $cmd"
     $cmd
 )

@@ -1,0 +1,15 @@
+#!/bin/zsh
+words="$1"
+ts=($(adb shell pm list packages | grep "$words"))
+
+(( $#ts == 0 )) && print -u2 NOT FOUND: $words && return 1
+
+function packageinfo() { 
+    adb shell dumpsys package ${1%$'\u0d'}
+}
+
+for t in ${ts}; do
+    packageinfo ${t#package:}
+done
+
+
