@@ -1,6 +1,8 @@
 #!/bin/zsh
 local m
-for m in **/AndroidManifest.xml; do
+local -a xs
+xs=(**/AndroidManifest.xml)
+for m in ${(O)xs}; do
     [[ $m == AndroidManifest.xml ]] && {
         print ./AndroidManifest.xml
         return 
