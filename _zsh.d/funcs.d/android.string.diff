@@ -19,6 +19,8 @@ function main() {
     local _v1=''
     local _src=''
 
+    print -u2 "01 : $1"
+    print -u2 "01 : $2"
     xmlstarlet sel -t -m "/resources/string" -v @name -n $_strings_xml_0 >  .keys
     xmlstarlet sel -t -m "/resources/string" -v @name -n $_strings_xml_1 >> .keys
     
@@ -43,4 +45,4 @@ function main() {
 }
 
 
-main "$*"
+main $*
