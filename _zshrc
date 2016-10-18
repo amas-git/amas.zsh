@@ -190,4 +190,5 @@ import() {
 . ~/.zsh.d/module/libandroid.zsh
 . ~/.zsh.d/module/mix.zsh
 . ~/.zsh.d/module/textutils.zsh
+. ~/.zsh.d/libs/misc.zsh
 export EDITOR=vim
