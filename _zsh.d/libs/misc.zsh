@@ -83,6 +83,17 @@ __='
         && print android.eclipse
 }
 
+function android.path.manifest() {
+    local -a xs
+    xs=(${(s=:=)$(android.project.home)})
+    
+    local m
+    [[ $xs[1] == android.eclipse ]] && m=$xs[2]/AndroidManifest.xml && return
+    [[ $xs[1] == android.studio  ]] && m=$xs[2]/app/src/main/AndroidManifest.xml
+
+    [[ -f $m ]] && print $m
+}
+
 
 
 function android.adb.logcat() {
