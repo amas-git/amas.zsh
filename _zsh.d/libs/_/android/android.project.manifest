@@ -1,0 +1,16 @@
+#!/bin/zsh
+local m
+local -a xs
+xs=(**/AndroidManifest.xml)
+for m in ${(O)xs}; do
+    [[ $m == AndroidManifest.xml ]] && {
+        print ./AndroidManifest.xml
+        return 
+    }
+    root=$(dirname $m)/
+    [[ -d ${root}assets || -d ${root}/java || -d {$root}/res ]] && {
+        print ${root}AndroidManifest.xml
+        # TODO: 多个Android工程如何处理，目前只取第一个
+        break
+    }
+done

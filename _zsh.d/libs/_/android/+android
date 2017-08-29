@@ -1,0 +1,30 @@
+#!/bin/zsh
+local help='''
+
+EXPORT:
+ * ANDROID_PROJECT_HOME = $ANDROID_PROJECT_HOME
+ * ANDROID_PROJECT_TYPE = eclipse|studio
+ * ANDROID_PACKAGE_NAME = $ANDROID_PACKAGE_NAME
+ * ANDROID_RES          = $ANDROID_RES
+ * ANDROID_JAVA         = $ANDROID_JAVA
+ * ANDROID_LAYOUT       = $ANDROID_LAYOUT
+ * ANDROID_MANIFEST     = $ANDROID_MANIFEST
+'''
+
+
+help() { print -u2 ${(e)help} }
+
+function main() {
+    local ms
+
+    ANDROID_MANIFEST=$(android.project.manifest)
+    ANDROID_PROJECT_HOME=$(dirname $ANDROID_MANIFEST)
+    ANDROID_RES=$ANDROID_PROJECT_HOME/res/
+    ANDROID_JAVA=$ANDROID_PROJECT_HOME/java/
+    ANDROID_LAYOUT=$ANDROID_PROJECT_HOME/res/layout/
+    ANDROID_PACKAGE_NAME=$(android.manifest $ANDROID_MANIFEST @package)
+   
+    help
+}
+
+main "$@"
