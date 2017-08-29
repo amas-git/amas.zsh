@@ -182,13 +182,5 @@ import() {
 [[ -f ~/.namedir ]] && . ~/.namedir
 [[ -f ~/.profile ]] && . ~/.profile
 [[ -f ~/.alias   ]] && . ~/.alias
-. ~/.zsh.d/module/git-flow-completion.zsh
-. ~/.zsh.d/module/antlr.zsh
-. ~/.zsh.d/module/zlog.zsh
-. ~/.zsh.d/module/template.zsh
-. ~/.zsh.d/module/libjava.zsh
-. ~/.zsh.d/module/libandroid.zsh
-. ~/.zsh.d/module/mix.zsh
-. ~/.zsh.d/module/textutils.zsh
 . ~/.zsh.d/libs/misc.zsh
 export EDITOR=vim
