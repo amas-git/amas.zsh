@@ -1,8 +1,0 @@
-#!/bin/zsh
-
-function main() {
-    local xpath="$1"
-    echo "$(<&0)" | xml sel -I -t -i "$xpath" -o "true" --else -o "false"
-}
-
-main $*

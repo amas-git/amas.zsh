@@ -1,6 +1,0 @@
-#!/bin/zsh
-typeset -A uuid_methods
-uuid_methods[long]='x$(uuidgen)'
-uuid_methods[rand]='x_${RANDOM}_${RANDOM}'
-
-echo ${(e)uuid_methods[rand]}

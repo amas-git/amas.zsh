@@ -1,2 +1,0 @@
-#!/bin/zsh
-xmlstarlet sel -t -m "//*[@android:id!='']"  -v '@android:id' -o ' ' -c 'name(.)' -o ' ' $*

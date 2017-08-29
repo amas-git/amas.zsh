@@ -1,6 +1,0 @@
-#!/bin/zsh
-while true; do
-    adb wait-for-device
-    android.adb.logcat -c
-    android.adb.logcat -s AndroidRuntime $*
-done

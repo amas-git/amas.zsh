@@ -1,3 +1,0 @@
-#!/bin/zsh
-local id=${1:=unknown}
-echo $(project home res/xml/${id}.xml)

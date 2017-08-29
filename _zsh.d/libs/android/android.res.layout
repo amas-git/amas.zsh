@@ -1,6 +1,0 @@
-#!/bin/zsh
-[[ -z $ANDROID_LAYOUT ]] && {
-    +android 2> /dev/null 
-}
-
-print ${ANDROID_LAYOUT}${1}
