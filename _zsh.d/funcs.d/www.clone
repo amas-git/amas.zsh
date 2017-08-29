@@ -1,1 +1,0 @@
-wget -r -l20 -H -np -erobots=off "$@"

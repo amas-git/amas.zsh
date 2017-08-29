@@ -1,3 +1,0 @@
-[[ -z $* ]] && adb shell pm list packages && return
-adb shell pm list packages | grep "$1"
-

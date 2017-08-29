@@ -1,9 +1,0 @@
-# @desc : lazy add .git
-functions main() {
-    local -a common_ignore
-    common_ignore=(.class .project bin/ gen/ proguard/ '*.DS_Store' .settings/ perform/)
-   
-    [[ -d .gitignore ]] || print -l $common_ignore > .gitignore
-}
-
-main $*

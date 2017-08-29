@@ -1,1 +1,0 @@
-find . -type f -name '*.java' -print0 | xargs -0 grep --color -n "$@" 

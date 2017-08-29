@@ -1,5 +1,0 @@
-#!/bin/zsh
-(
-cd ~zsh.d
-git pull origin master
-)

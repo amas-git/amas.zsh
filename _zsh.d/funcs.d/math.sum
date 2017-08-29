@@ -1,7 +1,0 @@
-#!/bin/zsh
-typeset -i r
-for x in $argv; do
-    r+=x
-done
-
-print $r

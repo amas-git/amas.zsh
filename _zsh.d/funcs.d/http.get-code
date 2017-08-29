@@ -1,3 +1,0 @@
-#!/bin/zsh
-# $1 : target Url
-curl -s -L --head -w "%{http_code}\n" "$1" | tail -n1
