@@ -183,4 +183,5 @@ import() {
 [[ -f ~/.profile ]] && . ~/.profile
 [[ -f ~/.alias   ]] && . ~/.alias
 . ~/.zsh.d/libs/misc.zsh
+. ~/.zsh.d/libs/PH2.zsh
 export EDITOR=vim

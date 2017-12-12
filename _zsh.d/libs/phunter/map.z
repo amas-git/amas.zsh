@@ -1,0 +1,4 @@
+#----------------------------------------| @e
+[[ $TYPE == 'int' ]]    && print INTEGER
+[[ $TYPE == 'string' ]] && print STRING
+

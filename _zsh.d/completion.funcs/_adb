@@ -106,10 +106,7 @@ _adb_command_push() {
 
 # adb shell
 _adb_command_shell() {
-    adb_shell_cmds=(
-        'am:am'
-        'pm:pm'
-    )
+    adb_shell_cmds=($(adb shell ls /system/bin))
     # _arguments -s \
     #     '*:adb command:(ls logcat)'
     if (( CURRENT == 2 )); then
@@ -265,6 +262,20 @@ _adb_shell_am_to-intent-uri() {
 #         _describe -t adb-commands $cmdlist
 #     fi
 # }
+
+_adb_shell_command_dumpsys() {
+    local ret
+    adb_shell_dumpsys_cmds=($(adb shell service list | cut -f2 | cut -d: -f1))
+    if (( CURRENT == 3 )); then
+        _describe -t adb-shell-dumpsys 'adb shell dumpsys' adb_shell_dumpsys_cmds
+    else
+        local cmd=${words[3]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:adb-shell-dumpsys-$cmd"
+        _call_function ret _adb_shell_dumpsys_$cmd || _message "no more arguments after $cmd"
+    fi
+    return ret
+}
 
 # adb shell
 _android_tools_adb_shell() {

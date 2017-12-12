@@ -31,6 +31,18 @@ function wgetd() {
     local fileSuffix="$2"
     wget -r -l1 -H -t1 -nd -N -np -A.$fileSuffix -w2 -erobots=off $url
 }
+
+# 统计当前目录想下面的文件类型及数量
+function suffix() {
+    local -A map
+    local suffix
+    for f in **/*(.); do
+        suffix=${f##*.} 
+        (( $#suffix == $#f )) && continue
+        map[$suffix]=$(( $map[$suffix] + 1 ))
+    done
+    print -l ${(k)map}
+}
 #---------------------------------------------------------------[ date ]
 alias now.yymmdd='date +%Y%m%d'
 
@@ -59,11 +71,22 @@ $body
 function text.grep() {
     local regex=$argv[1]
     [[ -z $regex ]] && print -l $packages && return
-
 }
 
-function cgrep() {
-    find . -type f -name '*.c' -print0 | xargs -0 grep --color -n "$@"
+function cgrep()    { print -l **/*.c    | xargs  grep --color -n "$*" } 
+function cppgrep()  { print -l **/*.cpp  | xargs  grep --color -n "$*" }
+function javagrep() { print -l **/*.java | xargs  grep --color -n "$*" } 
+function pygrep()   { print -l **/*.py   | xargs  grep --color -n "$*" }
+
+function sourcegrep() {
+    unsetopt NOMATCH
+    print -l **/*.py       \
+             **/*.c        \
+             **/*.cpp      \
+             **/*.java     \
+             **/*.gradle   \
+             | xargs  grep --color -n "$*"
+    setopt NOMATCH
 }
 #---------------------------------------------------------------[ math ]
 # 求和
@@ -76,10 +99,22 @@ function math.sum() {
 }
 #---------------------------------------------------------------[ android.device ]
 
+function android.device.package-3rd() {
+    packages=(${${$(adb shell pm list packages -3)#package:}%$'\u0d'}) 
+    local regex="$*"
+    
+    print -l ${(M)packages:#*$regex*}
+}
+function android.device.package-sys() {
+    packages=(${${$(adb shell pm list packages -s)#package:}%$'\u0d'}) 
+    local regex="$*"
+    
+    print -l ${(M)packages:#*$regex*}
+}
+
 # print all packages installed on the device
 # android.device.packages [<regex>]
 function android.device.packages() {
-    __DEBUG_ARGS__
     packages=(${${$(adb shell pm list packages)#package:}%$'\u0d'}) 
     local regex="$*"
     
@@ -91,7 +126,48 @@ function android.device.permissions() {
     print -l $perms
 }
 
+function android.device.uid() {
+    local -a xs
+    xs=($(adb shell ps $1))
+    print $xs[-1]
+}
 
+function android.adb.service.list() {
+    local -a xs
+    xs=($(adb shell service list | cut -f2))
+    print $xs
+}
+
+function android.adb.unisntall() {
+   local -a px 
+   px=($(android.device.packages $1))
+   print -l $px
+   adb uninstall $px[1]
+}
+
+# MONIT THREAD: for pid in %s; do pname=$(cat /proc/$pid/cmdline); for x in /proc/$pid/task/*; do echo $pname $pid $(cat $x/stat); done done
+
+function android.list.so() {
+    pid=$1
+    adb shell cat /proc/$pid/maps | grep .so | uniq | sort
+}
+
+function android.pids() {
+    adb shell ps | awk '/'"$1"'/ {print $2" "$1" "$9}'
+}
+
+function android.device.get_version() {
+    packagename=($(android.device.packages $1))
+    [[ -z $packagename ]] && return
+    for p in $packagename; do
+        print $p
+        adb shell dumpsys package $packagename | grep version
+    done
+}
+
+function android.device.get_top_activity() {
+    adb shell dumpsys activity | grep mFocused
+}
 #---------------------------------------------------------------[ android.project ]
 function android.project.home() {
     (
@@ -206,12 +282,6 @@ for t in ${ts}; do
     packageinfo ${t#package:}
 done
 }
-
-
-function android.pid() {
-    adb shell ps | grep $1 | awk '{print $2}'
-}
-
 
 function android.proc.dump() {
     local -A maps

@@ -1,9 +1,18 @@
 #!/bin/zsh
+# alias
+alias dict='typeset -gA'
+readonly PH="__PH2017__" # PH MAIN TREE CONTEXT PREFIX
+readonly PH_SEP="Ξ"       # PH MAIN TREE CONTEXT SEPERATOR
+
 (
 function D() {
     print -u2 ${FG[white]}$*"$terminfo[sgr0]"
 }
-alias map='typeset -gA'
+
+# mainTree created by @main command, it is
+# human f<F4>
+dict mainTree
+dict funcMaps # Function Table
 
 function @z() {
     local _source
@@ -49,6 +58,74 @@ function @z() {
     function @append() { local content="$(<&0)" && set -A $1 "${(@P)1}" "${content}" }
     function @null() {}
     function @stop() { exit }
+
+    function @function() {
+        local name
+        local params
+        local body
+
+        # Function BODY
+        body="$(<&0)"
+
+        # Function NAME
+        name=$1
+        
+        # Function PARAMS
+
+        eval "function $name() {
+            local content=
+            print ${} 
+        }"
+    }
+
+    # create mainTree
+    function @main() {
+        local content="$(<&0)"
+        local line
+        local context=
+        local -i level=0
+        local key
+        local parent
+        local -a nodes
+
+        function getParent() {
+            local p
+            [[ -z $nodes ]] && return
+            for x in {$1..0}; do
+                p=$nodes[$x]
+                [[ -n $p ]] && break
+            done
+            print  "$p"
+        }
+       
+
+        for line in "${(@f)content}"; do
+            # skip comment line OR empty line
+            [[ $line =~ '(^#.*$)|(^\s*$)' ]] && continue
+            key=
+
+            if [[ $line =~ '(^\s*)([-])(\s*)([^:]*)[:](\s*)(.*$)' ]]; then
+                key=$match[4]
+                level=$#match[1]
+                parent=$(getParent $level) 
+                context=$parent/$key
+                nodes[level+1]=$context
+
+                print $context "'$key' = '$match[6]'"
+                mainTree[$context]=$match[6]
+                contextId=${context//\//$PH_SEP}
+                #print $contextId
+                typeset -g $contextId=$match[6]
+            else 
+                # TODO: GOOD ERROR MESSAGE
+                print -- "WARN: create mainTree failed '$line'"
+            fi
+        done
+    }
+
+    function @match() {
+        #typeset -m "$PH_SEP"'*'
+    }
 
     skip=
     function @if() {
@@ -105,3 +182,4 @@ function @z() {
 
 @z $*
 )
+

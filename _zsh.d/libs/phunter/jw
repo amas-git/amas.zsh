@@ -128,7 +128,7 @@ function jwalk() {
     [[ -z $json ]] && { return 1 } 
     local type=${(Q)$(<<< "$json" | jq 'type')}
     jscheme[$jcontext]="$type"
-    # echo "---------------------------| $jcontext    $type"
+     echo "---------------------------| $jcontext    $type"
     [[ $type == number  ]] && { return 0 }
     [[ $type == string  ]] && { return 0 }
     [[ $type == null    ]] && { return 0 }
