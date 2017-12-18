@@ -1,17 +1,73 @@
 #------------------------------------------| @echo
 - This is $USER
 #------------------------------------------| @main
-- person: object
-    - name: string
-    - age: int
-    - bank: array
-        - name: 1
-        - id: 2
-        - xx: (a b c d "e")
+[] list
+    * 1
+    * 2
+    * 3
 
-        - name: 1
-        - id: 2
+list: (1 2 3 4)
 
+map: (a:1 b:2 c:3 d:12 e:"F")
+
+- person
+    - name: zhou
+    - age: jia
+    - person
+        - name: 
+        - age:
+        - person
+            - name: 1
+            - name: b
+            - name: c
+
+## OBJECT
+- person
+    - name: zhou
+    - age: 34
+
+## ARRAY
+- psersons::person
+    - name:
+    - age:
+
+    - name:
+    - age:
+
+    - name
+    - age
+
+    - name
+#-------------------------------------| @match /person
+class $name {
+#----------------------| type name value -- $
+    private $type $name = $value; // $comment
+#----------------------
+    public $type get$name() {
+        return this.$name;
+    }
+#----------------------
+    public void set$name($type $name) {
+        this.$name = $name;
+    }
+}
+
+#-------------------------------------| @function type -- name type | @append sdfasdf
+
+private $type $name = $default_value[$type];
+
+#-------------------------------------
+- root:
+    - person
+        - name: 1
+        - age: 2
+    - person
+        - name: 1
+        - age: 2
+    - person
+        - name: 1
+        - age: 2
+        
 #   /person/name -> person_name
 #   ph_context=person $person_name
 #------------------------------------------| @match * | @append members

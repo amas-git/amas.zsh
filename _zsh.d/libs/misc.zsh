@@ -11,6 +11,9 @@ alias http.get-head='curl --head'
 alias http.delete='curl -X DELETE'
 alias http.get='curl -X GET'
 alias http.put='curl -X PUT'
+alias git.show.version='git rev-parse --short HEAD'
+alias git.pack='git archive -o latest.zip HEAD'
+
 
 function http.status() {
     curl -s -L --head -w "%{http_code}\n" "$1" | tail -n1
@@ -42,6 +45,66 @@ function suffix() {
         map[$suffix]=$(( $map[$suffix] + 1 ))
     done
     print -l ${(k)map}
+}
+
+alias json.format='python -mjson.tool'
+alias xml.format="xmlstarlet fo -s 4"
+alias urlencode='python2 -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
+alias urldecode='python2 -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
+#---------------------------------------------------------------[ system ]
+alias du='du -h'
+alias df='df -h'
+alias c="git commit -am"
+
+## X11 
+alias x11-get-wm-class='msgI "Please click a window !!!" ; xprop | grep  WM_CLASS'
+alias x11-get-wm-name='msgI "Please click a window !!!" ; xprop | grep  ^WM_NAME'
+#---------------------------------------------------------------[ archlinux ]
+alias pacman.rm.unused=pacman -Rns $(pacman -Qtdq)
+
+function pacman.ls.installed() {
+    for p in $(pacman -Qg); do
+        xs=${(F)p}
+        print $xs[1]
+    done
+}
+# 当前正在使用的内核支持的acpi模块列表
+alias acpi.ls.mod="ls -l /lib/modules/$(uname -r)/kernel/drivers/acpi"
+alias acpi.cd.mod_dir="cd /lib/modules/$(uname -r)/kernel/drivers/acpi"
+alias pacman.rank-mirrors='sudo rankmirrors -n 5 /etc/pacman.d/mirrorlist.org > /etc/pacman.d/mirrorlist'
+
+
+alias pacman-rm.package='sudo pacman -R'
+alias pacman-rm.package.and-nouse-depend="sudo pacman -Rs"
+# pacman会备份被删除程序的配置文件，将它们加上*.pacsave扩展名。如果你在删除软件包时要同时删除相应的配置文件
+alias pacman-rm.package.and-keep-config="sudo pacman -Rn"
+
+alias pacman.make-world='sudo pacman -Sy ; pacman -Su'
+alias pacman.search='sudo pacman -Ss'
+alias pacman.search-local='sudo pacman -Qs'
+alias pacman.files='sudo pacman -Ql'
+alias pacman.which='sudo pacman -Qo'
+alias pacman.download='sudo pacman -Sw'
+alias pacman.install-local='sudo pacman -U'
+#仅在你确定不需要做任何软件包降级工作时才这样做。pacman -Scc会从缓存中删除所有软件包。
+alias pacman.clear-cache='sudo pacman -Scc'
+alias pacman.edit-conf='sudo vim /etc/pacman.conf'
+
+functions ip.lan() {
+    ip addr show | sed -n '/ether/ {n;p}' | awk '{print $2}' | sed -e 's/\/.*//g' 
+}
+
+function www.httpd() {
+    print http://$(ip.lan):8000
+    print
+    print
+    python -m SimpleHTTPServer || python -m http.server
+}
+#---------------------------------------------------------------[ math ]
+function n() {
+    for x in {1..63}; do
+        print $x=$(( 2**x ))
+    done
 }
 #---------------------------------------------------------------[ date ]
 alias now.yymmdd='date +%Y%m%d'
@@ -98,6 +161,12 @@ function math.sum() {
     print $sum
 }
 #---------------------------------------------------------------[ android.device ]
+# print dex file header
+alias dex.header="dexdump -f classes.dex | sed  '/^$/Q'"
+alias android.cpu='adb shell cat /proc/cpuinfo'
+alias android.cpu.core='adb shell cat /proc/cpuinfo | grep processor | wc -l'
+alias android.load='watch -n 1 cat /proc/loadavg'
+alias android.vmstat='adb shell vmstat'
 
 function android.device.package-3rd() {
     packages=(${${$(adb shell pm list packages -3)#package:}%$'\u0d'}) 
