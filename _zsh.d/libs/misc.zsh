@@ -1,11 +1,69 @@
 #!/bin/zsh
 # 用于保存一些临时的想法
-#---------------------------------------------------------------[ alias ]
+#---------------------------------------------------------------[ debug ]
 alias __DEBUG_ARGS__='print -u2 $0 : $#argv $argv'
 
-alias www.clone=wget -r -l20 -H -np -erobots=off "$@"                  # 克隆网站
-alias www.httpd='python -m SimpleHTTPServer || python -m http.server'  #  简单的HTTP文件服务器 
+#---------------------------------------------------------------[ alias ]
 
+# 统计当前目录想下面的文件类型及数量
+function suffix() {
+    local -A map
+    local suffix
+    for f in **/*(.); do
+        suffix=${f##*.} 
+        (( $#suffix == $#f )) && continue
+        map[$suffix]=$(( $map[$suffix] + 1 ))
+    done
+    print -l ${(k)map}
+}
+
+alias json.format='python -mjson.tool'
+alias xml.format="xmlstarlet fo -s 4"
+alias urlencode='python2 -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
+alias urldecode='python2 -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
+#---------------------------------------------------------------[ system ]
+alias du='du -h'
+alias df='df -h'
+alias c="git commit -am"
+
+## X11 
+alias x11-get-wm-class='msgI "Please click a window !!!" ; xprop | grep  WM_CLASS'
+alias x11-get-wm-name='msgI "Please click a window !!!" ; xprop | grep  ^WM_NAME'
+#---------------------------------------------------------------[ archlinux ]
+alias pacman.rm.unused=pacman -Rns $(pacman -Qtdq)
+
+# 列出除了base组以外安装的全部包名
+function pacman.installed() {
+    for p in "${(@f)$(pacman -Qg)}"; do
+        xs=(${(s: :)p})
+        [[ $xs[1] = 'base' ]] && continue
+        print $xs[2]
+    done
+}
+# 当前正在使用的内核支持的acpi模块列表
+alias acpi.ls.mod="ls -l /lib/modules/$(uname -r)/kernel/drivers/acpi"
+alias acpi.cd.mod_dir="cd /lib/modules/$(uname -r)/kernel/drivers/acpi"
+alias pacman.rank-mirrors='sudo rankmirrors -n 5 /etc/pacman.d/mirrorlist.org > /etc/pacman.d/mirrorlist'
+
+
+alias pacman-rm.package='sudo pacman -R'
+alias pacman-rm.package.and-nouse-depend="sudo pacman -Rs"
+# pacman会备份被删除程序的配置文件，将它们加上*.pacsave扩展名。如果你在删除软件包时要同时删除相应的配置文件
+alias pacman-rm.package.and-keep-config="sudo pacman -Rn"
+
+alias pacman.make-world='sudo pacman -Sy ; pacman -Su'
+alias pacman.search='sudo pacman -Ss'
+alias pacman.search-local='sudo pacman -Qs'
+alias pacman.files='sudo pacman -Ql'
+alias pacman.which='sudo pacman -Qo'
+alias pacman.download='sudo pacman -Sw'
+alias pacman.install-local='sudo pacman -U'
+#仅在你确定不需要做任何软件包降级工作时才这样做。pacman -Scc会从缓存中删除所有软件包。
+alias pacman.clear-cache='sudo pacman -Scc'
+alias pacman.edit-conf='sudo vim /etc/pacman.conf'
+
+
+#---------------------------------------------------------------[ network ] 
 # HTTP
 alias http.get-head='curl --head'
 alias http.delete='curl -X DELETE'
@@ -35,60 +93,8 @@ function wgetd() {
     wget -r -l1 -H -t1 -nd -N -np -A.$fileSuffix -w2 -erobots=off $url
 }
 
-# 统计当前目录想下面的文件类型及数量
-function suffix() {
-    local -A map
-    local suffix
-    for f in **/*(.); do
-        suffix=${f##*.} 
-        (( $#suffix == $#f )) && continue
-        map[$suffix]=$(( $map[$suffix] + 1 ))
-    done
-    print -l ${(k)map}
-}
-
-alias json.format='python -mjson.tool'
-alias xml.format="xmlstarlet fo -s 4"
-alias urlencode='python2 -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
-alias urldecode='python2 -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
-#---------------------------------------------------------------[ system ]
-alias du='du -h'
-alias df='df -h'
-alias c="git commit -am"
-
-## X11 
-alias x11-get-wm-class='msgI "Please click a window !!!" ; xprop | grep  WM_CLASS'
-alias x11-get-wm-name='msgI "Please click a window !!!" ; xprop | grep  ^WM_NAME'
-#---------------------------------------------------------------[ archlinux ]
-alias pacman.rm.unused=pacman -Rns $(pacman -Qtdq)
-
-function pacman.ls.installed() {
-    for p in $(pacman -Qg); do
-        xs=${(F)p}
-        print $xs[1]
-    done
-}
-# 当前正在使用的内核支持的acpi模块列表
-alias acpi.ls.mod="ls -l /lib/modules/$(uname -r)/kernel/drivers/acpi"
-alias acpi.cd.mod_dir="cd /lib/modules/$(uname -r)/kernel/drivers/acpi"
-alias pacman.rank-mirrors='sudo rankmirrors -n 5 /etc/pacman.d/mirrorlist.org > /etc/pacman.d/mirrorlist'
-
-
-alias pacman-rm.package='sudo pacman -R'
-alias pacman-rm.package.and-nouse-depend="sudo pacman -Rs"
-# pacman会备份被删除程序的配置文件，将它们加上*.pacsave扩展名。如果你在删除软件包时要同时删除相应的配置文件
-alias pacman-rm.package.and-keep-config="sudo pacman -Rn"
-
-alias pacman.make-world='sudo pacman -Sy ; pacman -Su'
-alias pacman.search='sudo pacman -Ss'
-alias pacman.search-local='sudo pacman -Qs'
-alias pacman.files='sudo pacman -Ql'
-alias pacman.which='sudo pacman -Qo'
-alias pacman.download='sudo pacman -Sw'
-alias pacman.install-local='sudo pacman -U'
-#仅在你确定不需要做任何软件包降级工作时才这样做。pacman -Scc会从缓存中删除所有软件包。
-alias pacman.clear-cache='sudo pacman -Scc'
-alias pacman.edit-conf='sudo vim /etc/pacman.conf'
+alias www.clone=wget -r -l20 -H -np -erobots=off "$@"                  # 克隆网站
+alias www.httpd='python -m SimpleHTTPServer || python -m http.server'  #  简单的HTTP文件服务器 
 
 functions ip.lan() {
     ip addr show | sed -n '/ether/ {n;p}' | awk '{print $2}' | sed -e 's/\/.*//g' 
@@ -174,6 +180,7 @@ function android.device.package-3rd() {
     
     print -l ${(M)packages:#*$regex*}
 }
+
 function android.device.package-sys() {
     packages=(${${$(adb shell pm list packages -s)#package:}%$'\u0d'}) 
     local regex="$*"
@@ -225,7 +232,7 @@ function android.pids() {
     adb shell ps | awk '/'"$1"'/ {print $2" "$1" "$9}'
 }
 
-function android.device.get_version() {
+function android.device.get-version() {
     packagename=($(android.device.packages $1))
     [[ -z $packagename ]] && return
     for p in $packagename; do
@@ -234,7 +241,7 @@ function android.device.get_version() {
     done
 }
 
-function android.device.get_top_activity() {
+function android.device.get-top-activity() {
     adb shell dumpsys activity | grep mFocused
 }
 #---------------------------------------------------------------[ android.project ]
