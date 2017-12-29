@@ -1,43 +1,23 @@
 #------------------------------------------| @echo
-- This is $USER
-#------------------------------------------| @main
-[] list
-    * 1
-    * 2
-    * 3
-
-list: (1 2 3 4)
-
-map: (a:1 b:2 c:3 d:12 e:"F")
-
-- person
-    - name: zhou
-    - age: jia
-    - person
-        - name: 
-        - age:
-        - person
-            - name: 1
-            - name: b
-            - name: c
-
-## OBJECT
-- person
-    - name: zhou
-    - age: 34
-
-## ARRAY
-- psersons::person
-    - name:
-    - age:
-
-    - name:
-    - age:
-
-    - name
-    - age
-
-    - name
+Hello PH!
+#------------------------------------------| @tree
+# ROOT
+    * packageName: a
+    * age: 2
+## persons
+### person
+    * name: $packageName
+    * age: 2
+### person
+    * name: 1
+    * age: ${name}_1
+#### banks
+    * name: CIBC
+    * code: 1982
+## test
+    * A
+    * B
+#-------------------------------------| @stop
 #-------------------------------------| @match /person
 class $name {
 #----------------------| type name value -- $

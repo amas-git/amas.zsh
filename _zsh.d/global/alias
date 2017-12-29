@@ -82,24 +82,3 @@ alias sqlite='sqlite3 -line'
 #-----------------------------------------------------[ Misc. ]
 # echo WAN IP
 alias www.ip="curl ifconfig.me"
-
-# simple http server
-alias du='du -h'
-alias df='df -h'
-alias c="git commit -am"
-alias fs="mount | column -t"
-alias github.repo.info="curl"
-# 计算机型号
-alias self.model="sudo hal-get-property --udi /org/freedesktop/Hal/devices/computer --key 'system.hardware.product'"
-
-#-----------------------------------------------------[ URL ]
-alias urlencode='python2 -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
-alias urldecode='python2 -c "import sys, urllib as ul; print ul.unquote_plus(sys.argv[1])"'
-#-----------------------------------------------------[ XML JSON ... ]
-#-----------------------------------------------------[ Zsh]
-alias functions.name="functions  | sed -n 's/\(.*\)\ ().*{$/\1/p'"
-#-----------------------------------------------------[ CouchDB ]
-alias couch.futon='chromium http://127.0.0.1:5984/_utils'
-#-----------------------------------------------------[ Android ]
-
-

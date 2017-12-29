@@ -78,7 +78,45 @@ function @z() {
         }"
     }
 
+    function @tree() {
+        local name="TREE"
+        local content="$(<&0)"
+        local -a lines nodes
+        local context
+        typeset -A $name
+
+        function getParent() {
+            local p
+            [[ -z $nodes ]] && return
+            for x in {$1..0}; do
+                p=$nodes[$x]
+                [[ -n $p ]] && break
+            done
+            print  "$p"
+        }
+       
+
+
+        lines=(${(@f)content})
+        for ((i=1; i<$#lines; ++i)) do
+            local line=$lines[i]
+            local -i level
+            level=0
+
+            if [[ $line =~ '^([#]+)\s+(.*)$' ]]; then
+                name=$match[2]
+                level=$#match[1]
+                context=$(getParent $level)/$name 
+                nodes[level+1]=$context
+                print -- $name $level $context
+            else if [[ $line =~ '\s+\*\s+([^:]+):(.*)' ]]
+                print -- $match[1]
+            fi
+        done
+    }
+
     # create mainTree
+    # TODO: delete this
     function @main() {
         local content="$(<&0)"
         local line

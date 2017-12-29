@@ -166,6 +166,17 @@ function math.sum() {
     done
     print $sum
 }
+
+# 水仙花数
+function narcissistic_numbers() {
+    for ((x=1; x<99999999; ++x)); do
+        n=0
+        for i in {1..$#x}; do
+            ((n+=$x[i]**$#x))
+        done
+        (( x == n )) && print $x
+    done
+}
 #---------------------------------------------------------------[ android.device ]
 # print dex file header
 alias dex.header="dexdump -f classes.dex | sed  '/^$/Q'"
