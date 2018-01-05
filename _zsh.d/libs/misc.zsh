@@ -77,6 +77,18 @@ function http.status() {
     curl -s -L --head -w "%{http_code}\n" "$1" | tail -n1
 }
 
+# http.post_json $url $json
+function http.post_json() {
+    local http=$1 && shift
+    [[ $http =~ '^http(.*)' ]] || {
+        print "'$http' is not validate http address"
+        return 1
+    }
+    local json="$@"
+
+    curl -X POST -H "Content-Type: application/json" --data $json $http
+}
+
 function wgetd() {
 # Download all files in specify URL with specify extention.
 #

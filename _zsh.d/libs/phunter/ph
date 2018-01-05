@@ -19,8 +19,6 @@ function @z() {
     local -a estack
     
 
-    integer lc=0 
-
     function dump() {
             # D ""
             # D "     PC : $pc"
@@ -195,22 +193,16 @@ function @z() {
    }
    
    estack=(@)
-   for line in "${(@f)_source}"; do
-       (( lc++ ))
+   local -a _chunks
+   _chunks=(${(@f)_source})
 
-        # instruction
-       if [[ $line =~ '(^#-{4,120}[\|-]*)(\s*)(@if)(.*$)' ]]; then
-           eval "$match[4]" && {
-               zeval
-               estack=(@)
-               skip=
-           } || {
-               skip=_
-           }
-       elif [[ $line =~ '(^#-{4,120}[\|-])(\s*)([@]*\w*)(.*$)' ]] && [[ -z $skip ]]; then
-           zeval
+   for ((i=1; i<=$#_chunks; ++i)); do
+       _line=$_chunks[i]
+       if [[ $_line =~ '(^#-{4,120}[\|-])(\s*)([@][a-ZA-Z0-9]+)(.*$)' ]]; then
+          _command=$match[3] 
+          print $_command
        else
-           [[ -n $estack ]] && [[ -z $skip ]] && {  
+           [[ -n $estack ]] && {  
                estack+=$line
            }
        fi
