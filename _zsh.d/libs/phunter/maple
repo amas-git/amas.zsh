@@ -1,0 +1,102 @@
+#!/bin/zsh
+#
+# Maple is a simple markup language just like json but more human friendly
+#
+# 功能:
+# node:
+#  - node id:
+#  - node attributes:
+#  - node subnode
+
+alias map='typeset -g -A'
+#readonly PH_SEP="Ξ"
+readonly PH_SEP="____"
+#readonly PH_SEP="/"
+
+function dump_ph_stat() {
+    print "======================"
+    typeset -pm ${PH_SEP}'*'
+}
+
+function maple() {
+    local _naming_space # map docs to some naming space, not used now
+    local -a _chunks 
+    local -a _nodes_stack # 临时变量方便查找parent 
+    local -a _nodes
+    local _source _context _parent
+    local -i _level=0
+    
+
+    _source="$(<&0)"
+    _chunks=(${(@f)_source})
+    _parent=$PH_SEP
+
+    # $1: level
+    function parentOf() {
+        local p
+        [[ -z $_nodes_stack ]] && return
+        for x in {$1..1}; do
+            p=$_nodes_stack[$x]
+            [[ -n $p ]] && break
+        done
+        print  "$p"  
+    }
+   
+    # Add new key/value pair to the specify map
+    # $1: name of map
+    # $2: key
+    # $3: value
+    function map.add() {
+        eval "${1}""[$2]=$3"
+    }
+
+    function node.all() {
+        print -l $_nodes
+    }
+
+
+    # Get the value of key of the specify map
+    # $1: name of map
+    # $2: key
+    function map.get() {
+        eval "print ${${(P)1}[$2]}" 
+    }
+
+    # TODO: dump map to maple format
+    function map.dump() {
+        for key in ${(Pk)1}; do
+            print "$key=${${(P)1}[$key]}"
+        done
+    }
+
+    for ((i=1; i<=$#_chunks; ++i)); do
+        _line=$_chunks[i]
+        if [[ $_line =~ '(^#+)(\s*)(.*)' ]]; then
+        # PLAIN NODE
+            _name=$match[3]
+            _level=$#match[1]
+            _parent=$(parentOf $_level)
+            _context=${_parent}${PH_SEP}$_name
+            _nodes_stack[_level+1]=$_context
+            _nodes+=$_context
+            map $_context
+
+            # add inner attributes
+            map.add $_context @name   $_name 
+            map.add $_context @parent $_parent
+        elif [[ $_line =~ '^\s+(-)\s*([^:]+):\s*(.*)' ]]; then
+        # ATTRIBUTE NODE
+            k=$match[2]
+            v=$match[3]
+            map.add $_context "$k" "$v"
+        else
+           #print $_line
+        fi
+    done
+
+    node.all
+}
+
+
+maple $*
+dump_ph_stat
