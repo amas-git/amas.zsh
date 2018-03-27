@@ -77,6 +77,58 @@ function http.status() {
     curl -s -L --head -w "%{http_code}\n" "$1" | tail -n1
 }
 
+ETH_JSON_RPC=http://127.0.0.1:8545
+ETH_JSON_RPC_ID=1
+ETH_JSON_RPC_REQ='{"jsonrpc":"2.0","method":"$method","params":[$params],"id":$id}'
+
+# ETH JSONRPC QUANTITY DATA TYPE TO HUMAN READABLE
+function QUANTITY() {
+    [[ $1 =~ (0x)(.*) ]] && {
+        print $((16#$match[2]))
+    }
+}
+
+function eth.jsonrpc.post() {
+    local API=$ETH_JSON_RPC
+    [[ -z $API ]] && { print "ETH_JSON_RPC can not be empty!" && exit 1 }
+    local method=$1
+    local params=$2
+    local id=${3:=$ETH_JSON_RPC_ID}
+    (( ETH_JSON_RPC_ID+= 1))
+    local request=${(e)ETH_JSON_RPC_REQ}
+    
+    print "$request TO $API"
+    curl -X POST -H "Content-Type: application/json" --data "$request" $API
+}
+
+function eth.jsonrpc() {
+    local API=${1:=$ETH_JSON_RPC}
+    print $API
+}
+
+function eth.jsonrpc.web3_sha3() {
+    eth.jsonrpc.post web3_sha3 ${(qqq)*}
+}
+
+function eth.jsonrpc.net_version() {
+    eth.jsonrpc.post net_version
+}
+
+function eth.jsonrpc.eth_getBalance() {
+    local tag="${2:=latest}"
+    eth.jsonrpc.post eth_getBalance ${(qqq)1},${(qqq)tag}
+}
+
+# $1 : address
+# $2 : tag latest | earliest | pending
+function eth.jsonrpc.eth_getTransactionCount() {
+    local tag="${2:=latest}"
+    eth.jsonrpc.post eth_getTransactionCount ${(qqq)1},${(qqq)tag}
+}
+
+
+
+
 # http.post_json $url $json
 function http.post_json() {
     local http=$1 && shift
@@ -133,6 +185,11 @@ function isLeapYear() {
     (( year % 4 == 0 && year % 100 != 0 || year % 400 == 0 ))
 }
 #---------------------------------------------------------------[ utils ]
+String mapToJSON() {
+    local map=$1
+    print $map
+}
+
 # shell转函数
 function script2function() {
     function_template='
@@ -181,7 +238,7 @@ function math.sum() {
 
 # 水仙花数
 function narcissistic_numbers() {
-    for ((x=1; x<99999999; ++x)); do
+    for ((x=1; x<999999; ++x)); do
         n=0
         for i in {1..$#x}; do
             ((n+=$x[i]**$#x))

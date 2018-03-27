@@ -145,7 +145,7 @@ function @z() {
                 level=$#match[1]
                 parent=$(getParent $level) 
                 context=$parent/$key
-                nodes[level+1]=$context
+                nodes+=$context
 
                 print $context "'$key' = '$match[6]'"
                 mainTree[$context]=$match[6]
