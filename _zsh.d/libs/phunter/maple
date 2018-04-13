@@ -19,17 +19,23 @@ function dump_ph_stat() {
 }
 
 function maple() {
-    local _naming_space # map docs to some naming space, not used now
+    local _naming_space   # map docs to some naming space, not used now
     local -a _chunks 
     local -a _nodes_stack # 临时变量方便查找parent 
-    local -a _nodes
-    local _source _context _parent
+    local -a _nodes       # 记录节点名集合
+    local _source 
+    local _context 
+    local _parent
     local -i _level=0
     
 
     _source="$(<&0)"
     _chunks=(${(@f)_source})
     _parent=$PH_SEP
+
+    function error() {
+        print "ERROR: $*" 
+    }
 
     # $1: level
     function parentOf() {
@@ -41,13 +47,23 @@ function maple() {
         done
         print  "$p"  
     }
-   
+  
+    # 给定parent找出所有字节点的集合
+    # $1: parent
+    # BUGFIX: 如果_nodes里面存在两个一样的$1,
+    # 则会出现搜索过度，会将两个节点的孩子合并之后返回，这有可能导致错误
+    function childOf() {
+        for c in $_nodes; do
+           [[ $c == ${1}${PH_SEP}*  ]] && print $c
+        done
+    }
+
     # Add new key/value pair to the specify map
     # $1: name of map
     # $2: key
     # $3: value
     function map.add() {
-        eval "${1}""[$2]=$3"
+        eval "${1}""[$2]='$3'"
     }
 
     function node.all() {
@@ -69,6 +85,56 @@ function maple() {
         done
     }
 
+    # 按顺序合并map
+    # $1: 合并到此map
+    # $2..: 被合并的map
+    function map.merge() {
+        (( $#argv < 2 )) && return
+        local mergeTo=$1;
+        local expr
+        for map in $argv[2,-1]; do
+            [[ ${(Pt)map} != association* ]] && {
+                error "map.merge: NOT A MAP :'$map'"
+            }
+            expr="$mergeTo+=(\"\${(kv)${map}[@]}\")"
+            eval $expr
+        done
+        #typeset -p $mergeTo
+    }
+
+    # 查找指定的map
+    function map.search() {
+        local target
+        target=${1//\/./}
+    }
+
+    # 从map中删除指定的key
+    # $1: map name
+    # $2.. : key name
+    function map.removeKey() {
+         
+    }
+
+    function map.unset() {
+    }
+
+    # 递归的扩展属性
+    function maple.core.extends() {
+        local _map_name=${1//\//$PH_SEP}
+        [[ ${(Pt)_map_name} != association* ]] && {
+            error "CAN't FIND $_map_name or NOT A MAP" 
+        }
+        map.merge $_context $_map_name
+    }
+
+    # 拷贝一个节点
+    # $1: target node name
+    # $2: new node name
+    function maple.core.copy() {
+         
+    }
+
+
     for ((i=1; i<=$#_chunks; ++i)); do
         _line=$_chunks[i]
         if [[ $_line =~ '(^#+)(\s*)(.*)' ]]; then
@@ -89,6 +155,12 @@ function maple() {
             k=$match[2]
             v=$match[3]
             map.add $_context "$k" "$v"
+            
+            # call inner handler
+            [[ $k[1] == '@' ]] && {
+                # TODO: 调用前检测函数是否已经存在
+                maple.core.$k[2,-1] $v
+            }
         else
            #print $_line
         fi
@@ -100,3 +172,5 @@ function maple() {
 
 maple $*
 dump_ph_stat
+
+
