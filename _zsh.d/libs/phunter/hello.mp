@@ -1,7 +1,17 @@
 # root
 ## A
+ - a: 1
+ - e: 2
 ## B
+ - @extends: /root/A
+ - b: 2
+### B_1
+ - b1: 1
+### B_2
+ - b2: 2
 ## C
+ - @extends: /root/B
+ - c: 3
 ## DEF
-## (a b c d e)
- - NAME: $NAME
+ - A: 1
+ - B: 2

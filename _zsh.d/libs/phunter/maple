@@ -85,9 +85,31 @@ function maple() {
         done
     }
 
+
+    typeset -g A map
+    function bindTest() {
+        local -a xs
+        xs=(a 1 A b 2 B)
+        for x y z in $xs; do
+            print $x $y $z
+        done
+
+        # map赋值测试
+        map=(a 1 b 2 c 3 d 4)
+        
+        name=map
+
+        # 这种方式当map是外部定义的时候会出现错误:
+        # 怀疑是typeset的一个bug
+        #typeset "map[f]=1" 
+        typeset map=($map[@] f 1)
+        typeset -p map
+    }
+
     # 按顺序合并map
     # $1: 合并到此map
     # $2..: 被合并的map
+    # 合并的时候所有@开头的key将跳过合并
     function map.merge() {
         (( $#argv < 2 )) && return
         local mergeTo=$1;
@@ -96,8 +118,18 @@ function maple() {
             [[ ${(Pt)map} != association* ]] && {
                 error "map.merge: NOT A MAP :'$map'"
             }
-            expr="$mergeTo+=(\"\${(kv)${map}[@]}\")"
-            eval $expr
+            for k v in "${(Pkv)${map}[@]}"; do
+                # 复制的时候跳过@开头的内部属性
+                [[ $k == @* ]] && continue
+
+                # 因为typeset的赋值bug, 所以暂时先用eval代替
+                eval "$mergeTo""[$k]=$v"
+            done
+            #typeset $mergeTo=()
+            #print "$mergeTo""[$k]=$v"
+            #typeset "$mergeTo""[$k]=$v"
+            #expr="$mergeTo+=(\"\${(kv)${map}[@]}\")"
+            #eval $expr
         done
         #typeset -p $mergeTo
     }
@@ -167,6 +199,15 @@ function maple() {
     done
 
     node.all
+    xs=(x y z)
+    loop() {
+        print $x-$y-$z
+    }
+    eval "
+    for $xs in a b c d e; do
+        loop
+    done
+    "
 }
 
 
