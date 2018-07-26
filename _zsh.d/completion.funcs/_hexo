@@ -1,0 +1,171 @@
+#compdef hexo
+local ops
+
+_hexo() {
+    ops=(
+        '--config[Specify config file instead of using _config.yml]'
+        '--debug[Display all verbose messages in the terminal]'
+        '--silent[Hide output on console]'
+        '--draft[Display draft posts]'
+        '--safe[Disable all plugins and scripts]'
+        '--cwd[Specify the CWD]'
+    )
+
+    _arguments -s $ops[@] '*::hexo command:_hexo_command'
+}
+
+(( $+functions[_hexo_command] )) ||
+_hexo_command() {
+    local ret
+
+    # subcommand list
+    cmds=(
+        'clean: Remove generated files and cache'
+        'config: Get or set configurations'
+        'generate: Generate static files'
+        'init: Create a new Hexo folder'
+        'list: List the information of the site'
+        'migrate: Migrate your site from other system to Hexo'
+        'publish: Moves a draft post from _drafts to _posts folder'
+        'server: Start the server'
+        'render: Render files with renderer plugins'
+        'version: Display version information'
+        'new: Create a new post'
+        'help: Get help on a command'
+        'deploy: Deploy your website'
+    )
+
+
+    # dispatch function
+    if (( CURRENT == 1 )); then
+        _describe -t hexo-command 'hexo command' cmds
+    else
+        local cmd=${words[1]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:hexo-$cmd"
+        _call_function ret _hexo_command_$cmd || _message "no more arguments after $cmd"
+    fi
+
+    return ret
+}
+
+## hexo clean
+_hexo_command_clean() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo config
+_hexo_command_config() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo generate
+_hexo_command_generate() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo init
+_hexo_command_init() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo list
+_hexo_command_list() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo migrate
+_hexo_command_migrate() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo publish
+_hexo_command_publish() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo server
+_hexo_command_server() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo render
+_hexo_command_render() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo version
+_hexo_command_version() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo new
+_hexo_command_new() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo help
+_hexo_command_help() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+## hexo deploy
+_hexo_command_deploy() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+
+# init
+_hexo "$@"

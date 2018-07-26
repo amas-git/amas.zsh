@@ -2,11 +2,6 @@
 #
 # Maple is a simple markup language just like json but more human friendly
 #
-# 功能:
-# node:
-#  - node id:
-#  - node attributes:
-#  - node subnode
 
 alias map='typeset -g -A'
 #readonly PH_SEP="Ξ"
@@ -18,6 +13,8 @@ function dump_ph_stat() {
     typeset -pm ${PH_SEP}'*'
 }
 
+
+# read maple markdown & load into memory as zsh association array
 function maple() {
     local _naming_space   # map docs to some naming space, not used now
     local -a _chunks 
@@ -199,19 +196,23 @@ function maple() {
     done
 
     node.all
-    xs=(x y z)
-    loop() {
-        print $x-$y-$z
-    }
-    eval "
-    for $xs in a b c d e; do
-        loop
-    done
-    "
+    #eval "for $xs in a b c d e; { loop }"
+    #for x in a b c; { print $x ;  print $x}
 }
 
 
-maple $*
-dump_ph_stat
+local -a PH_ESTACK
+_source="$(<&0)"
+_chunks=("${(@f)_source[@]}")
+print $#_chunks
+
+
+for ((i=1; i<$#_chunks; ++i)); do
+    _line=$_chunks[i]
+    print $_line
+done
+
+#maple $*
+#dump_ph_stat
 
 

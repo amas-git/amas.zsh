@@ -1,0 +1,100 @@
+#compdef vue
+
+_vue() {
+    ops=(
+        '-v[verbose mode]'
+        '-h[show help message]'
+    )
+
+    _arguments -s $ops[@] '*::vue command:_vue_command'
+}
+
+(( $+functions[_vue_command] )) ||
+_vue_command() {
+    local ret
+
+    # subcommand list
+    cmds=(
+        'create: create a new project powered by vue-cli-service'
+        'add: install a plugin and invoke its generator in an already created project'
+        'invoke: invoke the generator of a plugin in an already created project'
+        'inspect: inspect the webpack config in a project with vue-cli-service'
+        'serve: serve a .js or .vue file in development mode with zero config'
+        'build: build a .js or .vue file in production mode with zero config'
+        'ui: start and open the vue-cli ui'
+        'init: generate a project from a remote template (legacy)'
+    )
+
+
+    # dispatch function
+    if (( CURRENT == 1 )); then
+        _describe -t vue-command 'vue command' cmds
+    else
+        local cmd=${words[1]}
+        local curcontext="$curcontext"
+        curcontext="${curcontext%:*:*}:vue-$cmd"
+        _call_function ret _vue_command_$cmd || _message "no more arguments after $cmd"
+    fi
+
+    return ret
+}
+
+_vue_command_create() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_add() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_invoke() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_inspect() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_serve() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_build() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_ui() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+_vue_command_init() {
+    ops=(
+    )
+    _arguments -s \
+        $ops[@] \
+        '*:no args:_files -g \*'
+}
+
+# init
+_vue "$@"

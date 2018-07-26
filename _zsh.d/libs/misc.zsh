@@ -77,70 +77,6 @@ function http.status() {
     curl -s -L --head -w "%{http_code}\n" "$1" | tail -n1
 }
 
-ETH_JSON_RPC=http://127.0.0.1:8545
-ETH_JSON_RPC_ID=1
-ETH_JSON_RPC_REQ='{"jsonrpc":"2.0","method":"$method","params":[$params],"id":$id}'
-
-# ETH JSONRPC QUANTITY DATA TYPE TO HUMAN READABLE
-function QUANTITY() {
-    [[ $1 =~ (0x)(.*) ]] && {
-        print $((16#$match[2]))
-    }
-}
-
-function eth.jsonrpc.post() {
-    local API=$ETH_JSON_RPC
-    [[ -z $API ]] && { print "ETH_JSON_RPC can not be empty!" && exit 1 }
-    local method=$1
-    local params=$2
-    local id=${3:=$ETH_JSON_RPC_ID}
-    (( ETH_JSON_RPC_ID+= 1))
-    local request=${(e)ETH_JSON_RPC_REQ}
-    
-    print "$request TO $API"
-    curl -X POST -H "Content-Type: application/json" --data "$request" $API
-}
-
-function eth.jsonrpc() {
-    local API=${1:=$ETH_JSON_RPC}
-    print $API
-}
-
-function eth.jsonrpc.web3_sha3() {
-    eth.jsonrpc.post web3_sha3 ${(qqq)*}
-}
-
-function eth.jsonrpc.net_version() {
-    eth.jsonrpc.post net_version
-}
-
-function eth.jsonrpc.eth_getBalance() {
-    local tag="${2:=latest}"
-    eth.jsonrpc.post eth_getBalance ${(qqq)1},${(qqq)tag}
-}
-
-# $1 : address
-# $2 : tag latest | earliest | pending
-function eth.jsonrpc.eth_getTransactionCount() {
-    local tag="${2:=latest}"
-    eth.jsonrpc.post eth_getTransactionCount ${(qqq)1},${(qqq)tag}
-}
-
-
-
-
-# http.post_json $url $json
-function http.post_json() {
-    local http=$1 && shift
-    [[ $http =~ '^http(.*)' ]] || {
-        print "'$http' is not validate http address"
-        return 1
-    }
-    local json="$@"
-
-    curl -X POST -H "Content-Type: application/json" --data $json $http
-}
-
 function wgetd() {
 # Download all files in specify URL with specify extention.
 #
@@ -214,7 +150,10 @@ function text.grep() {
 function cgrep()    { print -l **/*.c    | xargs  grep --color -n "$*" } 
 function cppgrep()  { print -l **/*.cpp  | xargs  grep --color -n "$*" }
 function javagrep() { print -l **/*.java | xargs  grep --color -n "$*" } 
+function gogrep()   { print -l **/*.go   | xargs  grep --color -n "$*" } 
 function pygrep()   { print -l **/*.py   | xargs  grep --color -n "$*" }
+function jsgrep()   { print -l **/*.js   | xargs  grep --color -n "$*" }
+function allgrep()  { print -l **/*      | xargs  grep --color -n "$*" }
 
 function sourcegrep() {
     unsetopt NOMATCH
@@ -559,3 +498,47 @@ function android.strings.get() {
 
     xmlstarlet sel -t -c "/resources/string[@name='$_strings_key']/node()" $_strings_xml
 }
+
+#---------------------------------------------------------------[ 加密货币 ]
+BLOCK_INFO_API='https://blockchain.info/q'
+function btc.getdifficulty() {
+    curl $BLOCK_INFO_API/getdifficulty
+}
+
+function btc.getblockcount() {
+    curl $BLOCK_INFO_API/getblockcount
+}
+
+function btc.latesthash() {
+    curl $BLOCK_INFO_API/getblockcount
+}
+
+function btc.latesthash() {
+    curl $BLOCK_INFO_API/latesthash
+}
+
+function btc.blockReword() {
+    curl $BLOCK_INFO_API/bcperblock
+}
+
+# 总共有多少比特币
+function btc.total() {
+    curl $BLOCK_INFO_API/totalbc
+}
+
+# 计算出一个区块的概率
+function btc.probability() {
+    curl $BLOCK_INFO_API/probability
+}
+
+# hashestowin - Average number of hash attempts needed to solve a block
+function btc.hashestowin() {
+    curl $BLOCK_INFO_API/hashestowin
+}
+
+#nextretarget - Block height of the next difficulty retarget
+#avgtxsize - Average transaction size for the past 1000 blocks. Change the number of blocks by passing an integer as the second argument e.g. avgtxsize/2000
+#avgtxvalue - Average transaction value (1000 Default)
+#interval - average time between blocks in seconds
+#eta - estimated time until the next block (in seconds)
+#avgtxnumber - 
