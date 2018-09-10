@@ -1,0 +1,167 @@
+#!/bin/zsh
+function and() {
+    print $(($1&&$2))
+}
+
+function or() {
+    print $(($1||$2))
+}
+
+function not() {
+    print $((!($1==1)))
+}
+
+function xor() {
+    print $(( $1 ^^ $2))
+}
+
+function nor() {
+    print $(not $(or $1 $2))
+}
+
+function nand() {
+    print $(not $(and $1 $2))
+}
+
+function run() {
+    local op=$1;
+    print "=== $op ==="
+    print "$op 1 1 = $($op 1 1)"
+    print "$op 1 0 = $($op 1 0)"
+    print "$op 0 1 = $($op 0 1)"
+    print "$op 0 0 = $($op 0 0)"
+}
+
+function _run() {
+    print "$* = $($*)"
+}
+
+# 1. 我们先用nand来实现not, 为了区别之前的not我们用大写的NOT来表示
+function NOT() {
+    print $(nand $1 $1)
+}
+
+# 2. 有了NOT, 我们可以实现AND
+function AND() {
+    print $(NOT $(nand $1 $2))
+}
+
+# 3. 接下来实现NOR
+function NOR() {
+    print $(AND $(NOT $1) $(NOT $2))
+}
+
+# 4. 有了NOR可以来实现OR
+function OR() {
+    print $(NOT $(NOR $1 $2)) 
+}
+
+# 5. 最后我们还差XOR了, 这个比较有难度
+# 我们来观察一下真值表
+# === xor ===
+# xor 1 1 = 0
+# xor 1 0 = 1
+# xor 0 1 = 1
+# xor 0 0 = 0
+# 我们可以看到它和nand很像，只不过当0 0的情况正好相反，
+# 我们是不是可以借助其他运算的能力恰好弥补这一点？
+# === nand ===         
+# nand 1 1 = 0
+# nand 1 0 = 1
+# nand 0 1 = 1
+# nand 0 0 = 1
+# 仔细观察一下OR可以弥补nand的最后一位，但是需要and的帮助，
+# OR 1 1 = 1
+# OR 1 0 = 1
+# OR 0 1 = 1
+# OR 0 0 = 0
+# 所以最终，我们借助AND 和 OR 来拓展了nand的能力， 使nand也可以具备XOR的能力
+function XOR() {
+    print $(AND $(nand $1 $2) $(OR $1 $2))
+}
+function y() {
+    print $(XOR $1 $(NOT $2))
+}
+# NOT  a   = NAND a a
+# AND  a b = NOT  (NAND a b)
+# NOR  a b = AND  (NOT a)    (NOT b)
+# OR   a b = NOT  (NOR a b)
+# NAND a b = OR   (NOT a)    (NOT b)
+# AND  a b = NAND (NAND a b) (NAND a b)
+# XOR  a b = OR   (AND (NOT a) b) (AND a (NOT b)) 
+
+run and
+run or
+run xor
+run nor
+run nand
+
+_run not 1
+_run not 0
+
+_run NOT 1
+_run NOT 0
+
+_run AND 1 1
+_run AND 1 0
+_run AND 0 1
+_run AND 0 0
+
+_run NOR 1 1
+_run NOR 1 0
+_run NOR 0 1
+_run NOR 0 0
+
+_run OR  1 1
+_run OR  1 0
+_run OR  0 1
+_run OR  0 0
+
+_run XOR 1 1
+_run XOR 1 0
+_run XOR 0 1
+_run XOR 0 0
+
+_run y 1 1
+_run y 1 0
+_run y 0 1
+_run y 0 0
+
+print "
+ - 1947年英国数学家巧智.不二(George Bool)出了一本书，名字叫做: The Mathmematical Analysis of Logic
+ - 一位数学家从数学的角度看待什么是逻辑，这本书所讲述的世界中的主角只有两个，真和假，从此人类可以用数学语言来表达逻辑。
+ - 
+ 1. LogicGate有下面几种:
+    - AND
+    - OR
+    - NOT
+    - XOR
+    - NAND
+    - NXOR
+ 2. UniversalLogicGates: 有没有可能只用一种LogicGate就可以实现其他类型的LogicGate?  就是NAND
+    - 是什么特性让NAND可以如此特别？
+        - and  1 1 = $(and  1 1)
+        - and  0 0 = $(and  0 0)
+        - or   1 1 = $(or   1 1)
+        - or   0 0 = $(or   0 0)
+        - nand 1 1 = $(nand 1 1)
+        - nand 0 0 = $(nand 0 0)
+        - xor  1 1 = $(xor  1 1)
+        - xor  0 0 = $(xor  0 0)
+        - nor  1 1 = $(nor  1 1)
+        - nor  0 0 = $(nor  0 0)
+    - 不知到你是否注意到，nand和xor具备自我否定的能力，也就是说nand/nor可以将1变成0，也可以将0变成1, nand/nor通过自身可以实现not
+    - 有了否定自己的能力，有了not的加持，nand可以具备and,or,xor等其他逻辑门的能力, 它就具备整个逻辑世界的超能力，正是这个特别之是自身完整的。
+        - not a   = nand a a
+        - and a b = not (nand a b)
+        - nor a b = and (not a) (not b)
+        - or  a b = not (nor a b)
+        - xor a b = and (nand a b) (or a b)
+    - 其实xor,and,or它们任意一个只要凭借自身加上not的加持都可以成为universal Logic Gate
+        - nand = not (and a b)
+        - nand = or  (not a) (not b)
+    - 所以你是否明白，具备否定自己的能力为什么那么重要? 因为这种能力可以使你完整，使你成为UniversalLogicGates.
+
+"
+
+

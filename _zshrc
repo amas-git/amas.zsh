@@ -183,5 +183,5 @@ import() {
 [[ -f ~/.profile ]] && . ~/.profile
 [[ -f ~/.alias   ]] && . ~/.alias
 . ~/.zsh.d/libs/misc.zsh
-. ~/.zsh.d/libs/ir.zsh
+. /src/cmcm/wallet_service/tool/irtools/init.zsh
 export EDITOR=vim
