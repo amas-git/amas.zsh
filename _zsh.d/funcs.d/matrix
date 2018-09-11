@@ -1,0 +1,96 @@
+#!/bin/zsh
+
+
+
+# $1 : expect length
+# $2 : the string to repeat
+function fill() {
+    repeat $1; print -n $2
+}
+
+# Create screen buffer
+# $1: height
+# $2: width
+function screen.create() {
+    local h=$1
+    local w=$2
+    local l=$(fill w " ")
+    repeat h; print $l
+}
+
+# calc text dim (height width)
+# $1: var name
+function screen.dim() {
+    local name=$1
+    local w t
+    t=${(t)${(P)name}}
+    [[ $t == scalar ]] && {
+        print 1 ${#${(P)name}}
+        return
+    }
+
+    for x in ${(P)name}; do
+        w=$(( $#x > w ? $#x : w));
+    done
+    print ${#${(P)name}} $w 
+}
+
+function max() {
+    print -n $(( $1 > $2 ? $1 : $2))
+}
+
+# $1 : screen buffer
+# $2 : top
+# $3 : left
+# $4 : draw object
+# SCREEN::array
+# WIDTH::int 
+# HEIGHT::int
+function screen.draw() {
+    local -a obj
+    obj=("${(@f)3}")
+    local top=$1
+    local left=$2
+
+    integer i=1 width=0
+    for o in $obj; do
+        line=$SCREEN[i+top]
+        SCREEN[i+top]="$line[1,left]${o}${line[$#o+left+1,-1]}"
+        i=i+1
+        width=$(max $#o width)
+    done
+    
+    # set external var
+    HEIGHT=$#obj
+    WIDTH=$width
+    MAX_HEIGHT=$(max MAX_HEIGHT $#obj)
+}
+
+function screen.inline() {
+    local SCREEN=("${(@f)$(screen.create 20 150)}")
+    local HEIGHT=0 WIDTH=0 MAX_HEIGHT
+    local -i top left
+    for elem in $argv; do
+        screen.draw $top $left "${elem}"
+        left+=$WIDTH
+    done
+
+    print -l $SCREEN[1,MAX_HEIGHT]
+}
+
+a="
+|1 2 3 9|
+|4 5 6 1|
+|4 5 6 1|
+|4 5 6 1|
+|4 5 6 1|
+|4 5 6 1|
+|4 5 6 1|
+"
+b="
+┃1 2 3 9┃
+┃4 5 6 1┃
+" 
+
+screen.inline "$a" " + " "$b" " + " "$b"
+
