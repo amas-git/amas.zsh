@@ -53,7 +53,7 @@ function screen.draw() {
     local left=$2
 
     integer i=1 width=0
-    for o in $obj; do
+    for o in "${(@)obj}"; do
         line=$SCREEN[i+top]
         SCREEN[i+top]="$line[1,left]${o}${line[$#o+left+1,-1]}"
         i=i+1
@@ -91,6 +91,7 @@ b="
 ┃1 2 3 9┃
 ┃4 5 6 1┃
 " 
-
-screen.inline "$a" " + " "$b" " + " "$b"
-
+plus="
+ + 
+"
+screen.inline "$a" "${plus}" "$b" "${plus}" "$b"
