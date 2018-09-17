@@ -1,0 +1,16 @@
+#!/bin/zsh
+
+
+
+function progress() {
+    local -i max=$1
+    local -i n=0
+
+    while (( n < max )); do
+       print -n "\ec ${n}/$max" 
+       sleep 1
+       n+=1
+    done
+}
+
+progress 100
