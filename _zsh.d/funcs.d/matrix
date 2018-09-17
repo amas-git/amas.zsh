@@ -95,3 +95,79 @@ plus="
  + 
 "
 screen.inline "$a" "${plus}" "$b" "${plus}" "$b"
+
+
+function matrix() {
+    local name=$1
+    local -a data=(${(f)2})
+    local -a xs
+    local -i m n
+    m=$#data
+    for x in $data; do
+        xs+=(${(s: :)x})
+    done
+    n=$(( $#xs / m ))
+    set -A $name "@matrix:$m:$n" $xs[@]
+}
+
+function matrix.toString() {
+    local -a head=(${(s=:=)${${(P)1}[1]}};)
+    [[ $head[1] == @matrix ]] || exit -1
+    local -i m=$head[2] n=$head[3]
+    local -a data=(${${(P)1}[2,-1]})
+    for ((i=0; i<m; ++i)) {
+        print $data[i*n+1,i*n+n]
+    }
+}
+
+# mmulti 1 2 3 4 = 1*2 + 3*4
+function mmulti() {
+    local -i r
+    for ((i=1; i<$#argv; ++i)); do
+        r+=$(($argv[i]*argv[i+$#argv/2]))
+    done
+    print $r
+}
+
+function matrix.multi() {
+    local ma=$1 mb=$2
+    local -a _a _b
+    _a=(${(P)ma})
+    _b=(${(P)mb})
+    ha=(${(s=:=)$_a[1]})
+    hb=(${(s=:=)$_b[1]})
+
+    local -i am an bm bn
+    am=ha[2]
+    an=ha[3]
+
+    bm=hb[2]
+    bn=hb[3]
+
+    [[ an != bm ]] && {
+        return
+    }
+    for ((i=1; i<am; ++i)); do
+        
+    done
+}
+
+function matrix.add() {
+
+}
+
+matrix M1 "
+1 1 1
+2 2 2
+3 3 3
+"
+
+matrix M2 "
+2
+2
+"
+
+#matrix.toString M1
+#matrix.toString M2
+
+mmulti 2 1 2 2
