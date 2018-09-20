@@ -88,7 +88,7 @@ a="
 |4 5 6 1|
 "
 b="
-┃1 2 3 9┃
+┃1 2  3 9┃
 ┃4 5 6 1┃
 " 
 plus="
@@ -148,8 +148,13 @@ function matrix.multi() {
         return
     }
     for ((i=1; i<am; ++i)); do
-        
+       multi $a[i] 
     done
+}
+
+function matrix.row() {
+    local name=$1
+
 }
 
 function matrix.add() {

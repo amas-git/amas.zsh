@@ -15,7 +15,8 @@
 #       \M[-]X character with meta bit set
 #       \C[-]X control character
 #       ^X     control character
-
+#       F1     ^[OP
+#       F2     ^[OQ
 bindkey -e
 bindkey "\e[3~"  delete-char
 bindkey ";5D"    backward-word              # <C-Left>
@@ -35,3 +36,6 @@ bindkey "\C-p"   history-incremental-pattern-search-backward
 #bindkey "\C-\b"  zle.back-to-parent
 bindkey "^[OP"   run-help
 bindkey "^[[15"  zle.watch
+bindkey "^[OQ"  _complete_help
+
+
