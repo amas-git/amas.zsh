@@ -4,6 +4,7 @@
 alias __DEBUG_ARGS__='print -u2 $0 : $#argv $argv'
 
 #---------------------------------------------------------------[ alias ]
+alias git.config.credential.cache=git config --global credential.helper cache
 
 # 统计当前目录想下面的文件类型及数量
 function suffix() {
