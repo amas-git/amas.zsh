@@ -31,7 +31,7 @@ alias c="git commit -am"
 alias x11-get-wm-class='msgI "Please click a window !!!" ; xprop | grep  WM_CLASS'
 alias x11-get-wm-name='msgI "Please click a window !!!" ; xprop | grep  ^WM_NAME'
 #---------------------------------------------------------------[ archlinux ]
-alias pacman.rm.unused=pacman -Rns $(pacman -Qtdq)
+alias pacman.rm.unused='pacman -Rns $(pacman -Qtdq)'
 
 # 列出除了base组以外安装的全部包名
 function pacman.installed() {
