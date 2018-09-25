@@ -97,7 +97,7 @@ function wgetd() {
 alias www.clone=wget -r -l20 -H -np -erobots=off "$@"                  # 克隆网站
 alias www.httpd='python -m SimpleHTTPServer || python -m http.server'  #  简单的HTTP文件服务器 
 
-functions ip.lan() {
+function ip.lan() {
     ip addr show | sed -n '/ether/ {n;p}' | awk '{print $2}' | sed -e 's/\/.*//g' 
 }
 
