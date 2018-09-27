@@ -1,0 +1,3 @@
+#compdef foo
+
+_message "hello"    

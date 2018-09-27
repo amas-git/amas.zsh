@@ -1,0 +1,17 @@
+#!/bin/zsh
+
+local fname=$1
+(( ${+functions[$fname]} )) && {
+
+    local src=$(builtin functions $fname) 
+    
+    local out=viewsource_${fname}_${#src}.sh
+
+    <<< $src > /tmp/$out
+
+    ${EDITOR:=vim} /tmp/$out
+    return
+}
+
+print "'$fname' is NOT a function."
+exit -1
