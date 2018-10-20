@@ -1,2 +1,11 @@
 #!/bin/zsh
-date -d @$1 +'%Y%m%d %H:%M:%S'
+zmodload zsh/datetime
+
+local -i offset=${1:=0}
+local fmt=${2:=%Y-%m-%d}
+local now=$(strftime "%Y-%m-%d" $epochtime[1])
+local -i time
+strftime -r -s time "%Y-%m-%d" $now
+
+time=$((time + $offset*24*60*60))
+strftime "$fmt" $time

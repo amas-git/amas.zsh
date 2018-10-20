@@ -18,6 +18,7 @@ function suffix() {
     print -l ${(k)map}
 }
 
+alias ip.info='curl ipinfo.io/'
 alias json.format='python -mjson.tool'
 alias xml.format="xmlstarlet fo -s 4"
 alias urlencode='python2 -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
@@ -486,10 +487,6 @@ function android.strings.diff() {
     echo "</resources>"
 }
 
-
-function md5sum.string() {
-    echo -E "$*" | md5sum | sed -e 's/[ -]//g'
-}
 
 # $1: string id
 # $2: string file name
