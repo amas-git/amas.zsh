@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+const $ = JSON.parse(require('fs').readFileSync(0));
+const expr = process.argv[2]
+
+function walk(o, f, path="") {
+    function isObject(obj) {
+        return (typeof obj === "object" && obj !== null) || typeof obj === "function";
+    }
+
+    if((o === null) || Object.keys(o).length === 0 || (typeof o === 'string') || (typeof o === 'number')) {
+        return;
+    }
+
+    let keys = Object.keys(o);
+
+    for(let k of keys) {
+        if(f) {
+            let value = Array.isArray(o[k]) ? Object.keys(o[k]).join(":") : o[k];
+            if(!isObject(value)) {
+                f(`${path}/${k}`, k, value);
+            }
+        }
+        walk(o[k],f,`${path}/${k}`);
+    }
+}
+
+let rs=[]
+walk($,(path,key,value) => {
+    rs.push(`${path}\t"${value}"`);
+});
+
+process.stdout.write(rs.join('\n'));

@@ -1,7 +1,0 @@
-#!/usr/bin/env node
-const fs = require('fs');
-
-const $ = JSON.parse(fs.readFileSync(0));
-const expr = process.argv[2]
-
-expr && process.stdout.write(eval("`"+expr+"`"));
