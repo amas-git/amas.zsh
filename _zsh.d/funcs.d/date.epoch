@@ -2,7 +2,7 @@
 zmodload zsh/datetime
 
 local -i offset=${1:=0}
-local fmt=${2:=%Y-%m-%d}
+local fmt="%s"
 local now=$(strftime "%Y-%m-%d" $epochtime[1])
 local -i time
 strftime -r -s time "%Y-%m-%d" $now

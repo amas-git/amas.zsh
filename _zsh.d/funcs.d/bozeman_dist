@@ -1,0 +1,21 @@
+#!/bin/zsh
+# 模拟玻尔兹曼分布
+# xs是一个数组,数组长度为size,每个数组初始化为init,进行round次随机转移1
+# round: 随机交换次数
+# init : 
+# size : 
+local -i round=${1:=100}
+local -i init=10
+local -i size=10
+
+local -i src dst
+local -a xs
+repeat init; xs+=$init
+
+repeat round; {
+    (( src=RANDOM%(size)+1 ))
+    (( dst=RANDOM%(size)+1 ))
+    (( xs[src] > 0 )) && (( xs[dst]+=1, xs[src]-=1 ))  
+}
+
+print -l ${(On)xs}
