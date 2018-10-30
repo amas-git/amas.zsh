@@ -49,7 +49,7 @@ setopt AUTOCD               # type dir instead of 'cd dir'
 WORDCHARS='*?_-[]~=&;!#$%^(){}<>' 
 
 #-------------------------------------------------------------- [ PATH ]
-path=(~/bin $path /usr/local/bin)
+path=(~/bin ~/.zsh.d/bin $path /usr/local/bin)
 #-------------------------------------------------------------- [ Prompt ]
 . ~/.zsh.d/global/prompt.amas
 precmd() {
@@ -183,7 +183,6 @@ import() {
 [[ -f ~/.profile ]] && . ~/.profile
 [[ -f ~/.alias   ]] && . ~/.alias
 source ~/.zsh.d/libs/misc.zsh
-source /src/cmcm/wallet_service/tool/irtools/init.zsh
 export EDITOR=vim
 
 # 防止idea抽风
