@@ -184,6 +184,7 @@ import() {
 [[ -f ~/.alias   ]] && . ~/.alias
 source ~/.zsh.d/libs/misc.zsh
 export EDITOR=vim
+source /src/cmcm/wallet_service/tool/irtools/init.zsh
 
 # 防止idea抽风
 export _JAVA_AWT_WM_NONREPARENTING=1 
