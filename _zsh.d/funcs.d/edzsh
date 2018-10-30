@@ -1,0 +1,18 @@
+#!/bin/zsh
+(
+local fname=$1 
+local spec
+spec=$functions[$fname]
+[[ -z $spec ]] && return -1
+
+[[ $spec == "builtin autoload -X" ]] && ($fname &1> /dev/null)
+
+print $spec
+local src
+src=$(whence -av $fname)
+[[ $src =~ '(\/.*)' ]] && {
+    print $match[1]
+    gvim -c "silent! /${fname}()" $match[1]
+}
+)
+
