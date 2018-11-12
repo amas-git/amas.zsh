@@ -1,0 +1,10 @@
+#!/bin/zsh
+local port=${1:=7777}
+
+function hello() {
+    print "HELLO WORLD $RANDOM"
+}
+
+while true; do
+   nc -l -p $port -e http_route
+done

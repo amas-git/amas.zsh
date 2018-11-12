@@ -64,6 +64,12 @@ alias pacman.install-local='sudo pacman -U'
 alias pacman.clear-cache='sudo pacman -Scc'
 alias pacman.edit-conf='sudo vim /etc/pacman.conf'
 
+#---------------------------------------------------------------[ system ]
+# created rsa key
+function sshkeygen.rsa() {
+    local id=${1:=id_rsa}
+    ssh-keygen -t rsa -b 4096 -C "${RANDOM}@amas.com" -f $id && print "SUCCESS CREATED: $id|$id.pub"
+}
 
 #---------------------------------------------------------------[ network ] 
 # HTTP
