@@ -71,6 +71,65 @@ function sshkeygen.rsa() {
     ssh-keygen -t rsa -b 4096 -C "${RANDOM}@amas.com" -f $id && print "SUCCESS CREATED: $id|$id.pub"
 }
 
+#---------------------------------------------------------------[ docker ]
+function doker.rmi.dangling() {
+    docker rmi $(docker images -f "dangling=true" -q)
+}
+
+function docker.registry.run() {
+    local port=${1:5000}
+    docker run -d -p${port}:5000 registry
+}
+
+function docker.images() {
+    docker images
+}
+
+function docker.ps() {
+    docker ps $argv
+}
+
+function docker.rm-contianer() {
+    docker stop $1
+    docker rm $1
+}
+
+function docker.containers.ids() {
+    docker ps -a -q
+}
+
+function docker.cotainers.stopall() {
+    local -a all
+    all=($(docker ps -a -q))
+    docker stop $all
+}
+
+function docker.cotianers.stopall() {
+    local -a all
+    all=($(docker ps -a -q))
+    docker stop $all
+    docker rm $all
+}
+
+function docker.stats() {
+    docker stats $(docker ps --format={{.Names}})
+}
+
+# 登录到容器并
+function docker.shell() {
+    docker exec -ti $1 /bin/bash
+}
+
+function docker.ui() {
+    docker run --net host --name kitematic \                                                                                                                                                                  ~:[130]
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -e DISPLAY=$DISPLAY \
+        -v $HOME/.Xauthority:/root/.Xauthority \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --privileged=true -t jonadev95/kitematic-docker
+}
+
 #---------------------------------------------------------------[ network ] 
 # HTTP
 alias http.get-head='curl --head'
@@ -538,6 +597,10 @@ function btc.probability() {
 # hashestowin - Average number of hash attempts needed to solve a block
 function btc.hashestowin() {
     curl $BLOCK_INFO_API/hashestowin
+}
+
+function ustd.getTx() {
+    curl -s -X GET -H "Content-Type: application/x-www-form-urlencoded" "https://api.omniexplorer.info/v1/transaction/tx/${1}" 
 }
 
 #nextretarget - Block height of the next difficulty retarget
