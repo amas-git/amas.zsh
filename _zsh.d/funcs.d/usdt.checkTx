@@ -1,0 +1,23 @@
+#!/bin/zsh
+
+
+
+local xs=()
+xs=("${(@f)$(<250De.txt)}")
+touch finished.txt
+
+for x in $xs; do
+    tuple=(${(ps:\t:)x})
+    [[ $tuple[-1] == 拒绝 ]] && continue
+    addr=$tuple[-1]
+    grep $addr finished.txt > /dev/null && { print "FOUND: ${addr} SKIP" && continue}
+
+    valid=$(curl -s -X GET -H "Content-Type: application/x-www-form-urlencoded" "https://api.omniexplorer.info/v1/transaction/tx/${addr}" | grep valid)
+    [[ -n $valid ]] && {
+        print "DONE: $addr -> ${valid}"
+        print ${(j: :)tuple} "$valid" >> finished.txt
+        sleep 2
+        continue
+    }
+    print "ERRO: $addr" 
+done
