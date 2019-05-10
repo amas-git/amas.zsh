@@ -609,13 +609,3 @@ function ustd.getTx() {
 #interval - average time between blocks in seconds
 #eta - estimated time until the next block (in seconds)
 #avgtxnumber - 
-
-function base58() {
-    local input=$(<&0)
-    local x
-    local dict='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-
-    for x in $(echo -n $input | od -An -b); do
-        print $x
-    done
-}

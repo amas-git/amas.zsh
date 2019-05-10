@@ -1,0 +1,7 @@
+#!/bin/zsh
+
+local input=$1
+print $input
+[[ -f $input ]] && {
+   echo -n "ibase=16;obase=10;$(xxd -p -u $input)"
+}
