@@ -1,0 +1,22 @@
+#!/bin/zsh
+
+local dict=123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+local i=9999
+local output
+local zero
+
+for z in ${(@s::)i}; do
+	(( z > 0 )) && break
+	zero+=1
+done
+
+
+while true; do
+	r=$(echo "$i%58")
+	i=$(echo "$i/58" | bc)
+	output+=$dict[r+1]
+	(( i <= 0 )) && break
+done
+
+print $zero$(echo -n ${output} | rev)
+
