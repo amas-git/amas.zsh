@@ -44,7 +44,8 @@ alias ls-partitons='fdisk -l'
 alias ls-partions-by-uuid='ls /dev/disk/by-uuid/ -alh'
 alias ls-partions-by-label='ls /dev/disk/by-label -alh'
 alias ls-partions-by-id='ls /dev/disk/by-id -alh'
-
+alias ls.topsize='ls -ldh -- **/*(.DOL[1,20])' # 打印当前目录top10大小的文件
+alias ls.recent_changed='ls -alt  **(om[1,20])'
 
 alias vifstab='sudo vi /etc/fstab'
 alias virc.conf='sudo vi /etc/rc.conf'
