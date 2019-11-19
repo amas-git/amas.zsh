@@ -31,6 +31,64 @@ alias c="git commit -am"
 ## X11 
 alias x11-get-wm-class='msgI "Please click a window !!!" ; xprop | grep  WM_CLASS'
 alias x11-get-wm-name='msgI "Please click a window !!!" ; xprop | grep  ^WM_NAME'
+
+#---------------------------------------------------------------[ libgen ]
+LIBGEN_HOST="http://93.174.95.29"
+function libgen.search.md5() {
+    for x in $argv; do
+        local url="${LIBGEN_HOST}/_ads/${x}"    
+        local content=$(curl -s "$url")
+        local xs=$(print $content | tr -d '\n' | sed -n 's/.*\(main\/[0-9]*[^"]*\).*\/\(covers\/[0-9]*[^"]*\).*Author(s):\ \([^<]*\).*Publisher:\ \([^<]*\).*/\1\n\2\n\3\n\4/p')
+
+        print $xs
+    done
+}
+
+# spider for libgen.ls
+function libgen.ls() {
+    local list="$1"
+    local content
+    content=$(curl -s "$list" | sed -n 's/.*href="..\/book\/index.php?md5=\([A-Z0-9]*\)">\(.*\)\(<\/a.*\)/\1|||\2/p')
+    local xs
+    local INTER=3
+    local i=0
+    local ys
+
+    for x in "${(@f)content}"; do
+        ys=("${(@s:|||:)x}")
+        md5=$ys[1]
+        name=$ys[2]
+        
+        (( ++i % $INTER == 0 )) && {
+            sleep 1
+        }
+        xs=("${(@f)$(libgen.search.md5 $md5)}")
+        [[ -z $xs ]] && {
+            continue
+        }
+
+
+        # 1: download link
+        # 2: cover
+        # 3: author
+        # 4: publisher
+        link=$LIBGEN_HOST/$xs[1]
+        cover=$LIBGEN_HOST/$xs[2]
+        author=$xs[3]
+        publisher=$xs[4]
+        print "$link\t$md5\t$name\t$publisher\t$author"
+    done
+}
+
+function http.download() {
+    local -a xs
+    xs=("${(@f)$(<&0)}")
+    for x in $xs; do
+        tup=(${(ps:\t:)x})
+        link=$tup[1]
+        wget $link
+    done
+}
 #---------------------------------------------------------------[ archlinux ]
 alias pacman.rm.unused='pacman -Rns $(pacman -Qtdq)'
 
@@ -71,6 +129,20 @@ function sshkeygen.rsa() {
     ssh-keygen -t rsa -b 4096 -C "${RANDOM}@amas.com" -f $id && print "SUCCESS CREATED: $id|$id.pub"
 }
 
+# search the duplicated files
+function ls.duplicate() {
+    local dir=${1:=.}
+    find $dir ! -empty -type f -exec md5sum {} + | sort | uniq -w32 -dD
+}
+
+function djvu2pdf() {
+    local target=$1
+    [[ -f $target ]] || exit 1
+
+    local out
+    out=${target/.djvu/.pdf}
+    ddjvu -format=pdf -verbose "$target" "$out"
+}
 #---------------------------------------------------------------[ docker ]
 function doker.rmi.dangling() {
     docker rmi $(docker images -f "dangling=true" -q)
