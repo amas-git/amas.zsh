@@ -109,11 +109,12 @@ function libgen_download() {
     for x in $xs; do
         [[ $x =~ '[#!\ ].*' ]] && continue
         for link in "${(@ps:\t:)x}"; do
-            libgen_local_has $link || continue
+            libgen_local_has "$link" && break
             [[ "$link" =~ 'http.*' ]] || {
                 continue
             }
             wget "$link"
+            libgen_local_add "$(urldecode $(basename $link))"
         done
     done
 }
@@ -121,7 +122,8 @@ function libgen_download() {
 #$1: file1, file2,...,fileN
 function libgen_local_add() {
     for f in $argv; do
-        md5=${(U)$(md5sum $f | cut  -d' ' -f1)}
+        [[ -f "$f" ]] || continue
+        md5=${(U)$(md5sum "$f" | cut  -d' ' -f1)}
         dir=$LIBGEN_DB/.libgen/md5/$md5
         [[ -d $dir ]] && print "existed" && continue
         mkdir -p $dir
