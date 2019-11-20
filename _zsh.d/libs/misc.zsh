@@ -97,8 +97,6 @@ function libgen.ls() {
     done
 }
 
-LIBGEN_DB=/data
-
 function libgen_local_has() {
     local md5=$1
     [[ -d $LIBGEN_DB/.libgen/md5/$md5 ]] && return 0
