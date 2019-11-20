@@ -39,8 +39,22 @@ function libgen.search.md5() {
         local url="${LIBGEN_HOST}/_ads/${x}"    
         local content=$(curl -s "$url")
         local xs=$(print $content | tr -d '\n' | sed -n 's/.*\(main\/[0-9]*[^"]*\).*\/\(covers\/[0-9]*[^"]*\).*Author(s):\ \([^<]*\).*Publisher:\ \([^<]*\).*/\1\n\2\n\3\n\4/p')
-
         print $xs
+    done
+}
+
+function libgen.id() {
+    for x in $argv; do
+        curl -s "http://libgen.is/book/bibtex.php?md5=$x"
+    done
+}
+
+function libgen.search() {
+    local keywords="$(urldecode $1)"
+    local max=${2:=1}
+    for n in {1..$max}; do
+        local url="http://libgen.is/search.php?&res=100&req=${keywords}&phrase=0&view=detailed&column=def&sort=def&sortmode=ASC&page=${n}"
+        libgen.ls $url
     done
 }
 
@@ -60,7 +74,7 @@ function libgen.ls() {
         name=$ys[2]
         
         (( ++i % $INTER == 0 )) && {
-            sleep 1
+            sleep 0.31 
         }
         xs=("${(@f)$(libgen.search.md5 $md5)}")
         [[ -z $xs ]] && {
@@ -76,17 +90,53 @@ function libgen.ls() {
         cover=$LIBGEN_HOST/$xs[2]
         author=$xs[3]
         publisher=$xs[4]
-        print "$link\t$md5\t$name\t$publisher\t$author"
+        print "$md5\t$link"
+        print "\t- $name @$author"
+        print "\t- $publisher"
+        print "\t- ${link##*.}"
     done
 }
 
-function http.download() {
+LIBGEN_DB=/data
+
+function libgen_local_has() {
+    local md5=$1
+    [[ -d $LIBGEN_DB/.libgen/md5/$md5 ]] && return 0
+    return 1
+}
+
+function libgen_download() {
     local -a xs
     xs=("${(@f)$(<&0)}")
     for x in $xs; do
-        tup=(${(ps:\t:)x})
-        link=$tup[1]
-        wget $link
+        [[ $x =~ '[#!\ ].*' ]] && continue
+        for link in "${(@ps:\t:)x}"; do
+            libgen_local_has $link || continue
+            [[ "$link" =~ 'http.*' ]] || {
+                continue
+            }
+            wget "$link"
+        done
+    done
+}
+
+#$1: file1, file2,...,fileN
+function libgen_local_add() {
+    for f in $argv; do
+        md5=${(U)$(md5sum $f | cut  -d' ' -f1)}
+        dir=$LIBGEN_DB/.libgen/md5/$md5
+        [[ -d $dir ]] && print "existed" && continue
+        mkdir -p $dir
+        ln -sf "$(readlink -f $f)"  "$dir/$(basename $f)"
+    done
+}
+
+function libgen_update() {
+    local libhome=${1:=$LIBGEN_DB}
+    local md5
+    for f in $libhome/**/*(.); do
+        libgen_local_add $f
+        print "[DONE] $f"
     done
 }
 #---------------------------------------------------------------[ archlinux ]
