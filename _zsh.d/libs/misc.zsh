@@ -113,8 +113,10 @@ function libgen_download() {
             [[ "$link" =~ 'http.*' ]] || {
                 continue
             }
+            out="$(urldecode $(basename $link))"
+            #axel -n 4 "$link" -o "$out"
             wget "$link"
-            libgen_local_add "$(urldecode $(basename $link))"
+            libgen_local_add "$out"
         done
     done
 }
@@ -133,12 +135,112 @@ function libgen_local_add() {
 
 function libgen_update() {
     local libhome=${1:=$LIBGEN_DB}
+    LIBGEN_DB=$libhome
     local md5
     for f in $libhome/**/*(.); do
         libgen_local_add $f
         print "[DONE] $f"
     done
 }
+
+BOOKS_DB=~/.books
+
+
+function libgen.meta() {
+    local md5=$1
+    [[ -z $md5 ]] && return -1
+    local r
+    r=$(noglob curl -s "http://libgen.is/book/bibtex.php?md5=${md5}")
+    local error=$(echo $r | grep 'Wrong MD5')
+    [[ -n $error ]] && {
+        return -2
+    }
+    print $r
+}
+
+function books.name.normalize() {
+
+}
+
+function books.rename() {
+    function rename() {
+    
+    }
+    
+    local -a xs
+    for b in ${argv:=.}; do
+        [[ -f $b ]] && {
+            xs+=$b
+            continue
+        }
+        for f in $b/**/*; do
+            xs+=$f
+        done
+    done
+
+    for x in $xs; do
+        md5=${(U)$(md5sum "$x" | cut  -d' ' -f1)}
+        if books.has $md5; then
+            print "$x: existed : $(books.name.byMD5 $md5)"
+        else
+            print "$x: NEW"
+        fi
+    done
+}
+
+function books.name.byMD5() {
+    echo -n $(< $BOOKS_DB/md5/${(U)1}/name)
+}
+
+function books.has() {
+    [[ -d $BOOKS_DB/md5/${(U)1} ]]
+}
+
+# $1 : id (md5)
+function books.meta() {
+    local id=$1
+
+}
+
+function books.import() {
+    local target=${1:=.}
+    local md5
+    for f in $target/**/*(.); do
+        md5=${(U)$(md5sum "$f" | cut  -d' ' -f1)}
+        dir=$BOOKS_DB/md5/${md5}
+        __f=$(readlink -f $f)
+
+        if [[ -d $dir ]]; then
+            print "[EXISTED] : $md5/$f"
+            continue 
+        else
+            print "[**NEW**] : $md5/$f"
+            meta=$(libgen.meta $md5)
+            mkdir -p $dir
+            name=$(basename "$f")
+            echo $name > $dir/name
+            [[ -n $meta ]] && {
+                echo $meta > $dir/meta
+            }
+        fi
+        echo $__f    >> $dir/path
+    done
+}
+
+function books.stat() {(
+    local -A counter
+    for id in $BOOKS_DB/md5/*; do
+        [[ -d $id ]] || continue
+        name=$(<$id/name)
+        ___p=$(<$id/path)
+        meta=$(<$id/path)
+        (( 
+            counter[TOTAL]++
+        ))
+    done
+    typeset -p counter
+
+)}
 #---------------------------------------------------------------[ archlinux ]
 alias pacman.rm.unused='pacman -Rns $(pacman -Qtdq)'
 
@@ -181,8 +283,22 @@ function sshkeygen.rsa() {
 
 # search the duplicated files
 function ls.duplicate() {
-    local dir=${1:=.}
-    find $dir ! -empty -type f -exec md5sum {} + | sort | uniq -w32 -dD
+    local target=${1:=.}
+    local -A map
+    local -a xs
+    xs=(${target}/**/*)
+    mkdir .DUP
+    for f in ${(O)xs}; do
+        [[ -d $f ]] && continue
+        md5=${(U)$(md5sum "$f" | cut  -d' ' -f1)}
+        [[ -z $md5 ]] && continue
+        [[ -z $map[$md5] ]] || {
+            mv "$f" .DUP
+            print "[DUP] $f @$map[$md5]"
+            continue
+        }
+        map[$md5]=$f
+    done
 }
 
 function djvu2pdf() {
