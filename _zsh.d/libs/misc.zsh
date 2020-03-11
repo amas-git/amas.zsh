@@ -145,6 +145,110 @@ function libgen_update() {
 
 BOOKS_DB=~/.books
 
+function search_home() {
+    # max depth limited by FUNCNEST
+    local target=${1}
+    local dir=${2:=$(pwd)}
+    [[ $dir = /          ]] && return -1
+    [[ -d $dir/${target} ]] && print $dir && return
+    search_home $target ${dir:h}
+}
+
+# home dir of b
+function b.home() {
+    search_home '.b'
+}
+
+
+#
+# $ b.init <dir>
+function b.init() {
+    local b_home=$(b.home $1)
+    [[ -d $b_home ]] && {
+        print "EXISTED BHOME: '${b_home}'"
+        return -1
+    }
+   
+    # create db
+    b_home=${${1:=.}:A}/.b
+    mkdir $b_home
+}
+
+function b.isbook() {
+    [[ ${1:e:l} = (pdf|epub|mobi|azw3|cbr) ]]
+}
+
+function b.backup() {
+
+}
+
+function b.md5() {
+    print ${(U)$(md5sum -- "$1" | cut  -d' ' -f1)}
+}
+
+function error() {
+    print "[E] : $1" && exit 1
+}
+
+function I() {
+    print "[I] : $1"
+}
+
+function b.utils.needImport() {
+    local bhome=$1
+    local target=$2
+    print $bhome = $target
+    [[ ! $target = $bhome/* ]]
+}
+
+function b.store.has {
+    local bhome="$1"
+    local id="$2"
+    local bookd=$bhome/.b/md5/$2
+
+}
+
+function b.store.checklink() {
+    local bhome=$1
+    local id=$2
+    local loc
+    local -a urls
+    urls=("${(@)$($bhome/.b/md5/$id/urls)}")
+    for u in $urls; {
+        print $u 
+    }
+}
+
+function b.search() {
+
+}
+
+BHOME=/data
+# add book
+function b.add() {(
+    bhome=$(b.home)
+    [[ -z $bhome ]] && bhome=${BHOME:A}
+    [[ -z $bhome ]] && error "BHOME NOT FOUND, run b.init or set BHOME"
+
+    local -a src
+    src=(${argv})
+
+    [[ -z $src ]] && src=(*)
+    
+    for s in $src; {
+        # is accepttale ebook format?
+        book=${s:a}
+        b.isbook "$book" || continue
+        md5=$(b.md5 $book)
+
+        # is in home book?
+        b.utils.needImport "$bhome" "$book" && {
+            I "NEEDED"
+        }
+        
+        b.store.has "$bhome" "${md5}"
+    }
+)}
 
 function libgen.meta() {
     local md5=$1
@@ -197,9 +301,15 @@ function books.has() {
 }
 
 # $1 : id (md5)
-function books.meta() {
+function books.info.byMD5() {
     local id=$1
-
+    info=$BOOKS_DB/md5/$id
+    [[ -d $info ]]
+    print -l \
+        "ID  : $id" \
+        "NAME: $(<$info/name)" \
+        "PATH: $(<$info/path)" \
+        "META: $(<info/meta)"
 }
 
 function books.import() {
@@ -211,17 +321,22 @@ function books.import() {
         __f=$(readlink -f $f)
 
         if [[ -d $dir ]]; then
-            print "[EXISTED] : $md5/$f"
+            print "[EXISTED] : $md5:$f"
             continue 
         else
-            print "[**NEW**] : $md5/$f"
-            meta=$(libgen.meta $md5)
+            print "[**NEW**] : $md5:$f"
             mkdir -p $dir
             name=$(basename "$f")
             echo $name > $dir/name
-            [[ -n $meta ]] && {
-                echo $meta > $dir/meta
-            }
+
+            meta=
+            if [[ -f $dir/meta ]]; then
+                meta=$(<$dir/meta)
+            else
+                meta=$(libgen.meta $md5)
+                [[ -n $meta ]] && echo $meta > $dir/meta
+            fi
+
         fi
         echo $__f    >> $dir/path
     done
