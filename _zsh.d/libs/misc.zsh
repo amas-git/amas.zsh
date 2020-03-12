@@ -175,7 +175,7 @@ function b.init() {
 }
 
 function b.isbook() {
-    [[ ${1:e:l} = (pdf|epub|mobi|azw3|cbr) ]]
+    [[ ${1:e:l} = (pdf|epub|mobi|azw3|cbr|cbz) ]]
 }
 
 function b.backup() {
@@ -208,19 +208,63 @@ function b.store.has {
 
 }
 
+# $1: bhome
+# $2: bookID (md5)
+# check the book on filesystem, if it moved, try to fix link
 function b.store.checklink() {
     local bhome=$1
     local id=$2
     local loc
-    local -a urls
-    urls=("${(@)$($bhome/.b/md5/$id/urls)}")
+    local -a urls dead live
+    local _urls=$bhome/.b/md5/$id/urls
+
+    [[ -f $_urls ]] && urls=("${(@fu)$(<$_urls)}")
+
     for u in $urls; {
-        print $u 
+        [[ -f $u ]] && live+=$u || dead+=$u
     }
+
+    [[ -n $dead ]] && {
+        print -l $live > "$_urls"    
+    }
+    [[ -z $live ]] && return -1
+    print $live
 }
 
 function b.search() {
+    local bhome=$1
+}
 
+# $1: bhome
+# $2: file path to the book
+# added new book
+function b.store.add() {
+    local bhome=$1
+    local book=$2
+    local id=$3
+    local needcp
+    [[ -f $book  ]] || return 1
+    [[ -d $bhome ]] || return 2
+
+    b.utils.needImport "$bhome" "$book" && needcp=true
+    
+    # copy to bhome
+    local item=$bhome/.b/md5/$id
+    [[ -d $item ]] || mkdir -p $item
+
+    local to=$book
+    # copy if needed
+    [[ -n $needcp ]] && {
+        local to=${bhome}/${book:h:t:u}
+        [[ -d $to ]] || mkdir -p "$to"
+        
+        cp "$book" "$to" && {
+            to=$to/${book:t}
+        }
+    }
+    
+    # create book item in .b
+    print -n -- "$to" >> $item/urls
 }
 
 BHOME=/data
@@ -241,12 +285,10 @@ function b.add() {(
         b.isbook "$book" || continue
         md5=$(b.md5 $book)
 
-        # is in home book?
-        b.utils.needImport "$bhome" "$book" && {
-            I "NEEDED"
+        b.store.checklink "$bhome" "${md5}" || {
+            # need copy 
+            b.store.add "$bhome" "$book" "$md5"
         }
-        
-        b.store.has "$bhome" "${md5}"
     }
 )}
 
