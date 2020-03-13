@@ -175,7 +175,7 @@ function b.init() {
 }
 
 function b.isbook() {
-    [[ ${1:e:l} = (pdf|epub|mobi|azw3|cbr|cbz) ]]
+    [[ ${1:e:l} = (pdf|epub|mobi|azw3|cbr|cbz|djvu) ]]
 }
 
 function b.backup() {
@@ -197,7 +197,6 @@ function I() {
 function b.utils.needImport() {
     local bhome=$1
     local target=$2
-    print $bhome = $target
     [[ ! $target = $bhome/* ]]
 }
 
@@ -221,14 +220,15 @@ function b.store.checklink() {
     [[ -f $_urls ]] && urls=("${(@fu)$(<$_urls)}")
 
     for u in $urls; {
-        [[ -f $u ]] && live+=$u || dead+=$u
+        [[ -f $bhome/$u ]] && live+=$u || dead+=$u
     }
 
     [[ -n $dead ]] && {
         print -l $live > "$_urls"    
     }
     [[ -z $live ]] && return -1
-    print $live
+    print -l $live
+    return 0
 }
 
 function b.search() {
@@ -252,43 +252,105 @@ function b.store.add() {
     local item=$bhome/.b/md5/$id
     [[ -d $item ]] || mkdir -p $item
 
+    # read link
+    local -a xs live dead
+    [[ -f $item/urls ]] && xs=("${(@fu)$(<$item/urls)}")
+    for x in $xs; {
+        [[ -f $x ]] && live+=$x || dead+=$x
+    }
+
     local to=$book
     # copy if needed
     [[ -n $needcp ]] && {
-        local to=${bhome}/${book:h:t:u}
-        [[ -d $to ]] || mkdir -p "$to"
-        
-        cp "$book" "$to" && {
-            to=$to/${book:t}
-        }
+        to=${bhome}/${book:h:t:u}
+        if (( $#live > 0 )); then
+            [[ -d $to ]] || mkdir -p "$to"
+            [[ -f $to ]] || { 
+                cp "$book" "$to" && {
+                    to=$to/${book:t}
+                }
+            }
+        else
+            I "[SKIP COPY][$id] AT LEAST HAVE 1 LIVE FILE"
+        fi
     }
     
     # create book item in .b
-    print -n -- "$to" >> $item/urls
+    xs+=$to
+    xs=("${(@u)xs#$bhome/}")
+    print -l -- $xs > $item/urls
+    (( $#xs > 1 )) && {
+        I "[DUP] : $#xs : $id : $book"
+    }
 }
 
 BHOME=/data
+
+
+function b.homeOrExit() {
+    [[ -d $1/.b ]] || {
+        I "NOT BOOK HOME, EXIT(1)"
+        exit 1
+    }
+}
+
+# clean useless file, fix bad link
+function b.gc() {(
+    local bhome=${1:=$(b.home)}
+    b.homeOrExit $bhome
+    cd $bhome/.b/
+    local -a xs
+    local -i total dup
+
+    function DEAD() {
+        I "[x] : $item" 
+    }
+
+    function MANY() {
+        I "[m] : $#xs | $item"
+        print -l ${(u)xs}
+    }
+
+    function NORM() {
+
+    }
+
+    for item in **/urls; {
+        xs=("${(@f)$(b.store.checklink "$bhome" ${item:a:h:t})}")
+        xs=(${(u)xs})
+        local action=NORM
+        [[ -z $xs   ]] && action=DEAD
+        (( $#xs > 1 )) && action=MANY
+        $action
+    }
+)}
+
 # add book
 function b.add() {(
     bhome=$(b.home)
     [[ -z $bhome ]] && bhome=${BHOME:A}
     [[ -z $bhome ]] && error "BHOME NOT FOUND, run b.init or set BHOME"
 
-    local -a src
-    src=(${argv})
+    local -a src xs
+    local -i sum
+    #src=(${argv})
 
-    [[ -z $src ]] && src=(*)
-    
+    [[ -z $src ]] && src=(**/*(.))
+   
     for s in $src; {
         # is accepttale ebook format?
         book=${s:a}
-        b.isbook "$book" || continue
+        b.isbook "$book" || {
+            I "[SKIP] : $book"
+            mkdir -p $bhome/.SKIP
+            mv "$book" $bhome/.SKIP
+            continue
+        }
         md5=$(b.md5 $book)
 
-        b.store.checklink "$bhome" "${md5}" || {
-            # need copy 
-            b.store.add "$bhome" "$book" "$md5"
-        }
+        b.store.add "$bhome" "$book" "$md5"
+        (( sum++ ))
+        I "[$sum/${#src}] : .b/$md5/urls"
     }
 )}
 
