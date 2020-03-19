@@ -209,6 +209,7 @@ function b.store.has {
 
 # $1: bhome
 # $2: bookID (md5)
+# @return: live links
 # check the book on filesystem, if it moved, try to fix link
 function b.store.checklink() {
     local bhome=$1
@@ -223,11 +224,12 @@ function b.store.checklink() {
         [[ -f $bhome/$u ]] && live+=$u || dead+=$u
     }
 
+
     [[ -n $dead ]] && {
-        print -l $live > "$_urls"    
+        print -l -- $live > "$_urls"    
     }
     [[ -z $live ]] && return -1
-    print -l $live
+    print -l -- $live
     return 0
 }
 
@@ -248,7 +250,6 @@ function b.store.add() {
 
     b.utils.needImport "$bhome" "$book" && needcp=true
     
-    # copy to bhome
     local item=$bhome/.b/md5/$id
     [[ -d $item ]] || mkdir -p $item
 
@@ -256,31 +257,36 @@ function b.store.add() {
     local -a xs live dead
     [[ -f $item/urls ]] && xs=("${(@fu)$(<$item/urls)}")
     for x in $xs; {
-        [[ -f $x ]] && live+=$x || dead+=$x
+        [[ -f "$bhome/$x" ]] && live+=$x || dead+=$x
     }
 
-    local to=$book
+    # as least one live link
+    [[ -n $live ]] && [[ -n $needcp ]] && {
+        I "[SKIP][$id] AT LEAST HAVE 1 LIVE FILE"
+        return 1
+    }
+
+    local to=${book#$bhome/}
     # copy if needed
     [[ -n $needcp ]] && {
-        to=${bhome}/${book:h:t:u}
-        if (( $#live > 0 )); then
-            [[ -d $to ]] || mkdir -p "$to"
+        to=${bhome}/${book:h:t:u}/${book:t}
+        if (( $#live <= 0 )); then
+            [[ -d ${to:h} ]] || mkdir -p "${to:h}"
             [[ -f $to ]] || { 
                 cp "$book" "$to" && {
-                    to=$to/${book:t}
+                    I "[COPY TO] $to"
                 }
             }
-        else
-            I "[SKIP COPY][$id] AT LEAST HAVE 1 LIVE FILE"
         fi
     }
+
+    live+=$to
+    [[ -n $live ]] && {
+        print -l -- ${(u)live} > $item/urls
+    }
     
-    # create book item in .b
-    xs+=$to
-    xs=("${(@u)xs#$bhome/}")
-    print -l -- $xs > $item/urls
-    (( $#xs > 1 )) && {
-        I "[DUP] : $#xs : $id : $book"
+    [[ -n $dead ]] && {
+        print -l -- ${(u)dead} > $item/dead
     }
 }
 
@@ -294,6 +300,13 @@ function b.homeOrExit() {
     }
 }
 
+function b.store.mv() {(
+    local bhome=$1
+    local book
+    b.homeOrExit
+
+)}
+
 # clean useless file, fix bad link
 function b.gc() {(
     local bhome=${1:=$(b.home)}
@@ -302,17 +315,43 @@ function b.gc() {(
     local -a xs
     local -i total dup
 
+    # calc the reserve book file
+    function reserved() {
+        local r
+        for x in $argv; do
+            # dead link 
+            [[ -f $x ]] || {
+                I "DEAD LINK : $x"
+                print -n -- $x > $bhome/.b/md5/dead
+                continue
+            }
+           
+            [[ -z r ]] && r=$x
+            # longest first
+            (( ${#x:t} > $#r )) && {
+                r=$x 
+            }
+        done
+        print $r
+    }
+
     function DEAD() {
-        I "[x] : $item" 
+        I "[DEAD] : $bhome/$item" 
     }
 
     function MANY() {
-        I "[m] : $#xs | $item"
-        print -l ${(u)xs}
+        local keep=$(reserved "${(@)xs}")
+        I "[DUP($#xs)] : KEEP: $keep"
+        [[ -d $bhome/.b/dup ]] || mkdir -p $bhome/.b/dup 
+        for x in ${xs#$keep}; do
+            I "    - [MV TO DUP]: $x"
+            mv -- "$bhome/$x"  $bhome/.b/dup/
+        done
+        I ""
     }
 
     function NORM() {
-
+        I "[OK] : $bhome/.b/$item"
     }
 
     for item in **/urls; {
@@ -333,7 +372,13 @@ function b.add() {(
 
     local -a src xs
     local -i sum
-    #src=(${argv})
+
+    for x in $argv; {
+        [[ -f $x ]] && src+=$x && continue
+        for f in $x/**/*(.); {
+            src+=$f
+        }
+    }
 
     [[ -z $src ]] && src=(**/*(.))
    
@@ -350,7 +395,7 @@ function b.add() {(
 
         b.store.add "$bhome" "$book" "$md5"
         (( sum++ ))
-        I "[$sum/${#src}] : .b/$md5/urls"
+        I "[$sum/${#src}] : .b/md5/$md5/urls"
     }
 )}
 
