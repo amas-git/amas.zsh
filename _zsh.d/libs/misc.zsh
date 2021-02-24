@@ -574,7 +574,11 @@ function djvu2pdf() {
     ddjvu -format=pdf -verbose "$target" "$out"
 }
 #---------------------------------------------------------------[ docker ]
-function doker.rmi.dangling() {
+function docker.gc() {
+    docker system prune
+}
+
+function docker.rmi.dangling() {
     docker rmi $(docker images -f "dangling=true" -q)
 }
 
