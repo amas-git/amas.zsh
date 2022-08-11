@@ -1,0 +1,23 @@
+#!/bin/zsh
+#time_namelookup:  %{time_namelookup}s\n
+#        time_connect:  %{time_connect}s\n
+#     time_appconnect:  %{time_appconnect}s\n
+#    time_pretransfer:  %{time_pretransfer}s\n
+#       time_redirect:  %{time_redirect}s\n
+#  time_starttransfer:  %{time_starttransfer}s\n
+#                     ----------\n
+#          time_total:  %{time_total}s\n
+curl -o /dev/null -w "
+TOTAL:         %{time_total}
+   HTTP      :  %{http_version}
+   STATUS    :  %{http_code}
+   HEADER    :  %{size_header}
+   BODY      :  %{size_download}
+   REDIRECT  :  %{time_redirect}s
+   DNSLOOKUP :  %{time_namelookup}s
+   TCP_CONN  :  %{time_connect}s
+   SSL_CONN  :  %{time_appconnect}s
+   DN_SPEED  :  %{speed_download}
+   START_TRAN:  %{time_starttransfer}s
+   " $1 
+
