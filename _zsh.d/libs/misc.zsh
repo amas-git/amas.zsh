@@ -5,6 +5,7 @@ alias __DEBUG_ARGS__='print -u2 $0 : $#argv $argv'
 
 #---------------------------------------------------------------[ alias ]
 alias git.config.credential.cache=git config --global credential.helper cache
+alias dict.zh='trans :zh '
 
 # 统计当前目录想下面的文件类型及数量
 function suffix() {
@@ -595,26 +596,23 @@ function docker.ps() {
     docker ps $argv
 }
 
-function docker.rm-contianer() {
-    docker stop $1
-    docker rm $1
+function docker.run.alpine() {
+    docker run --rm -it alpine:3.14.0
 }
 
-function docker.containers.ids() {
+function docker.container.ids() {
     docker ps -a -q
 }
 
-function docker.cotainers.stopall() {
+function docker.container.stopall() {
     local -a all
     all=($(docker ps -a -q))
     docker stop $all
 }
 
-function docker.cotianers.stopall() {
+function docker.contianer.removeAll() {
     local -a all
-    all=($(docker ps -a -q))
-    docker stop $all
-    docker rm $all
+    docker rm -f $(docker ps -a -q)
 }
 
 function docker.stats() {
@@ -622,8 +620,8 @@ function docker.stats() {
 }
 
 # 登录到容器并
-function docker.shell() {
-    docker exec -ti $1 /bin/bash
+function docker.shell.to() {
+    docker exec -it $1 /bin/bash || docker exec -it $1 /bin/sh
 }
 
 function docker.ui() {
