@@ -505,6 +505,14 @@ function books.stat() {(
     typeset -p counter
 
 )}
+#---------------------------------------------------------------[ books ]
+function all.into() {
+    local key=$1
+    local target=${2:=$key}
+    ls **/*$key* || return 1
+    [[ -d $target ]] || mkdir $target
+    mv **/*$key* $target
+}
 #---------------------------------------------------------------[ archlinux ]
 alias pacman.rm.unused='pacman -Rns $(pacman -Qtdq)'
 
@@ -1064,6 +1072,27 @@ function android.strings.get() {
     xmlstarlet sel -t -c "/resources/string[@name='$_strings_key']/node()" $_strings_xml
 }
 
+#---------------------------------------------------------------[ BOOK NORMALIZE ]
+function book.names.group() {
+    target=${1:=.}
+    rules=$(< ~/.names.rc)
+    [[ -z $rules ]] && return 1
+    for r in ${(f)rules}; do
+        item=(${(s=:=)r})
+        dir=$item[1]
+        key=${item[2]:=$dir}
+        reg=${item[3]:=.*}
+
+        fs=(*$key*(N))
+	[[ -z $fs ]]  && continue
+
+        print '#' $dir : ${(qq)reg}
+	rs=("${(f)$(print -l $fs | grep $reg)}")
+	for f in $rs; do
+	    print "     + $f"
+        done
+    done
+}
 #---------------------------------------------------------------[ 加密货币 ]
 BLOCK_INFO_API='https://blockchain.info/q'
 function btc.getdifficulty() {
