@@ -1,0 +1,15 @@
+#!/bin/zsh
+local text
+(( $+commands[trans] )) || {
+    print "trans command NOT FOUND"
+    exit 1
+}
+
+(( $+commands[xsel] )) && {
+    text=$(xsel) 
+}
+
+print -- "==================================================="
+print -- $text
+print -- "---------------------------------------------------"
+print $text | trans -b :zh
