@@ -1095,6 +1095,13 @@ function book.names.group() {
         done
     done
 }
+
+function book.reading() {
+    local reading=${BOOK_READING:=~/READING} 
+    cp $* $reading && {
+        print "ADD $* TO '$reading'"
+    }
+}
 #---------------------------------------------------------------[ 加密货币 ]
 BLOCK_INFO_API='https://blockchain.info/q'
 function btc.getdifficulty() {

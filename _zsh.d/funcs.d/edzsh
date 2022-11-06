@@ -1,6 +1,6 @@
 #!/bin/zsh
 (
-local fname=$1 
+local fname=${1:=$(<~/.edzsh.last)} 
 local spec
 spec=$functions[$fname]
 [[ -z $spec ]] && return -1
@@ -12,7 +12,7 @@ local src
 src=$(whence -av $fname)
 [[ $src =~ '(\/.*)' ]] && {
     print $match[1]
-    gvim -c "silent! /${fname}()" $match[1]
+    vim -c "silent! /${fname}()" $match[1] && echo $fname > ~/.edzsh.last
 }
 )
 
