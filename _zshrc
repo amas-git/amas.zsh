@@ -182,6 +182,7 @@ import() {
 [[ -f ~/.namedir ]] && . ~/.namedir
 [[ -f ~/.profile ]] && . ~/.profile
 [[ -f ~/.alias   ]] && . ~/.alias
+source ~/.zsh.d/libs/openai.zsh
 source ~/.zsh.d/libs/misc.zsh
 export EDITOR=vim
 source /src/cmcm/wallet_service/tool/irtools/init.zsh

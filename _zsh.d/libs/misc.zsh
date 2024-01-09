@@ -1149,3 +1149,185 @@ function ustd.getTx() {
 #interval - average time between blocks in seconds
 #eta - estimated time until the next block (in seconds)
 #avgtxnumber - 
+#
+#
+
+BOOK_PATH="/Users/amas/Downloads:/Volumes/Multimedia/LIBS:/Volumes/Multimedia/LIBS_02:/Volumes/KODAK/LIBS2:/Volumes/KODAK/LIBS"
+
+function books.find() {(
+    local book_path=${1:=$BOOK_PATH}
+    for x in ${(s=:=)book_path}; do
+        cd $x
+        find ~+ -type f -name '*'
+    done
+    
+)}
+
+function books.gc() {(
+    stdin="$(<&0)"
+    books=("${(@f)stdin}")
+    typeset -A ids
+
+    for x in $books; do
+        id=${"$(<<< ${x:t} | shasum)"[1,7]}
+        n=$ids[$id]
+        [[ -z $n ]] && ids[$id]=0 && continue
+        [[ -f $x ]] || continue
+        ids[$id]=$((n+1))
+        print "$id $((n+1)) $(stat -f "%z" -- "$x")  $x"
+    done
+
+)}
+
+function books.category() {(
+    stdin="$(<&0)"
+    books=("${(@f)stdin}")
+    typeset -A matched
+
+
+    #--------------------------------------[ 分类器 ]
+    typeset -A LIB
+    LIB[马伯庸]='*马伯庸*'
+    LIB[通识]='*通识*'
+    LIB[吴军]='*吴军*'
+    LIB[历史]='*(千年|历史|通史)*' 
+    LIB[历史/熊逸]='*(熊逸)*' 
+    LIB[COFFEE]='*[Cc]offee*'
+    LIB[COFFEE/ZH]='*咖啡*'
+    LIB[统计学]='*(统计学|統計學)*'
+    LIB[概率]='*概率*'
+    LIB[音乐家/肖邦]='*肖邦*'
+    LIB[音乐家/巴赫]='*巴赫*'
+    LIB[METAVERSE]='*[Mm]etaverse*'
+    LIB[METAVERSE/ZH]='*元宇宙*'
+    LIB[CS/JS]='*[Jj]avascript*'
+    LIB[CS/PYTHON]='*[Pp]ython*'
+    LIB[CS/API]='*API*'
+    LIB[CS/ELIXIR]='*[Ee]lixir*'
+    LIB[CS/CPU]='*(CPU|处理器)*'
+    LIB[CS/GO]='*(Go |Golang)*'
+    LIB[CS/存储]='*(存储|SSD)*'
+    LIB[CS/TESTING]='*测试*'
+    LIB[CS/REACT]='*[Rr]eact*'
+    LIB[CS/DEVEOPS/ANSIBLE]='*[Aa]nsible*'
+    LIB[CS/CONTAINER]='*([Dd]ocker|[Pp]odman|[Cc]ontainer)*'
+    LIB[CS/AWS]='*(AWS)*'
+    LIB[CS/WEB]='*(前端)*'
+    LIB[CS]='*计算机*'
+    LIB[健康/饮食]='*(断食|饮食|生酮)*'
+    LIB[资本主义]='*资本主义*'
+    LIB[MATH/数学]='*数学*'
+    LIB[MATH]='*[Mm]ath*'
+    LIB[金融]='*金融*'
+    LIB[金融/通胀]='*通胀*'
+    LIB[金融/金钱]='*金钱*'
+    LIB[金融/理财]='*理财*'
+    LIB[金融/投资]='*投资*'
+    LIB[GROW]='*增长*'
+    LIB[GROW/SEO]='*SEO*'
+    LIB[ART/COLORS]='*色彩*'
+    LIB[汉字]='*(解字)*'
+    LIB[美学]='*美学*'
+    LIB[ART/美术]='*美术*'
+    LIB[ART/色情]='*AV*'
+    LIB[ART]='*艺术*'
+    LIB[ART/COLORS]='*([Cc]olor)*'
+    LIB[DESIGN]='*(设计师)*'
+    LIB[美食]='*食*'
+    LIB[TEA]='*茶*'
+    LIB[知乎]='*知乎*'
+    LIB[小说]='*小说*'
+    LIB[佛学]='*实相*'
+    LIB[WEB/ANGULAR]='*[Aa]gular*'
+    LIB[CITY/巴黎]='*巴黎*'
+    LIB[小说/叶三]='*叶三*'
+    LIB[小说/红楼梦]='*红楼*'
+    LIB[神话/克苏鲁]='*克苏鲁*'
+    LIB[神话]='*神话*'
+    LIB[蔡澜]='*蔡澜*'
+    LIB[陈丹青]='*陈丹青*'
+    LIB[人工智能]='*人工智能*'
+    LIB[人工智能/GPT]='*GPT*'
+    LIB[珍妮罗森]='*珍妮*罗森*'
+    LIB[漫画]='*漫画*'
+    LIB[DK]='*DK*'
+    LIB[塔勒布]='*(塔勒布)*'
+    LIB[SPORT/自行车]='*(自行车|单车|[Bb]ike)*'
+    LIB[TECH/科技]='*(科技|技术)*'
+    LIB[TECH/斯坦福]='*(斯坦福)*'
+    LIB[TECH/硅谷]='*(硅谷)*'
+    LIB[华为]='*(任正非|华为)*'
+    LIB[犯罪]='*(犯罪)*'
+    LIB[犯罪/刑侦]='*刑侦*'
+    LIB[犯罪/法医]='*(法医|尸体)*'
+    LIB[金融/数字货币]='*(数字货币|比特币|[Bb]itcoin)*'
+    LIB[摄影/黑卡]='*(黑卡)*'
+    LIB[摄影]='*摄影*'
+    LIB[博弈论]='*(博弈)*'
+    LIB[音乐]='*(爵士|流行|钢琴|乐理|[Pp]iano|和声)*'
+    LIB[医学]='*(医学)*'
+    LIB[哲学]='*(哲学)*'
+
+
+    print $#eooks
+    # @params
+    #   $1: keywords(regex
+    # @return
+    function _match() {
+        local regex=$1
+        r=(${(M)books:#${~regex}})
+        [[ -z $r ]] && return 1
+
+        print "['$regex']"
+        print -l "    "$^r
+        for x in $r; do
+            matched[$x]=$regex
+        done
+        return 0
+    }
+
+    for k in ${(k)LIB}; do
+        regex=$LIB[$k]
+        _match $regex
+    done
+
+
+    for x in $books; do
+        [[ -n $matched[$x] ]] && continue
+        print $x
+    done
+    print
+    print "${#${(@k)matched}} / $#books"
+
+)}
+
+
+AMAS_DOCS_ROOT=
+function amas.docs() {
+    print $AMAS_DOCS_ROOT
+}
+
+function amas.delete.books() {(
+    local db=~/.books
+    xs=("${(@f)$(<$db)}") 
+
+    typeset -A dict
+
+    for x in $xs; do
+        dict[${x:t}]=$x
+    done
+    
+    integer n m
+    for x in **/*.(epub|pdf|mobi|azw3); do
+        (( n=n+1 ))
+        f=${x:t}
+        s=$dict[$f]
+        [[ -n $s ]] && {
+            print "[ $f ]"
+            print -l "    "$s
+            (( m++ ))
+            [[ -f $x ]] && mv "$x" __DELETE/
+        }
+    done
+    print $n books $m existed
+)}
