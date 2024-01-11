@@ -31,6 +31,8 @@ function chatgpt.simple-chat() {
     local T=0.7
     message=${message//\"/}
 
+    [[ -z $OPENAI_SK ]] && print "Please set OPENAI_SK" && return -1
+
     local _request='
 {
   "model": "${model}",
