@@ -28,14 +28,24 @@ function chatgpt.simple-chat() {
     local model=$OPENAI_MODEL
     local message="$1"
     local role=user # user | system | assistant
+    local T=0.7
+    message=${message//\"/}
 
     local _request='
 {
   "model": "${model}",
-  "messages": [ {"role": "${role}", "content": "${messages}"} ]
+  "messages": [ {"role": "${role}", "content": "${message}"} ],
+  "temperature": ${T}
 }'
     curl -s 'https://api.openai.com/v1/chat/completions' \
          -H $AUTH \
          -H $HTTP_CONTENT_TYPE_JSON \
          -d "${(e)_request}"
+}
+
+function cn() {
+    local text=${1:=$(pbpaste)}
+    local prom="作为汉语翻译，翻译以下内容:"
+    local resp=$(chatgpt.simple-chat "$prom$text")
+    print $resp | jq -r ".choices[] | [.message.content] | @tsv"
 }
