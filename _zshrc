@@ -126,10 +126,7 @@ source ~/.zsh.d/global/alias.${$(uname):l}
 
 
 function +fpath() {
-    local _path="$1"
-    if [[ -z $fpath[(r)$_path] ]]; then
-        fpath=($_path $fpath)
-    fi
+    [[ -z $fpath[(r)$1] ]] && fpath=("$1" $fpath)
 }
 
 function autoload.d() {
@@ -145,10 +142,8 @@ function autoload.d() {
 #-------------------------------------------------------------- [ Zsh.PreludeFunctions ]
 autoload.d ~zshd/funcs.d ~self.fun 
 autoload.d ~zshd/libs/amasm
-autoload.d ~zshd/libs/android 
-autoload.d ~zshd/libs/java
-autoload.d ~zshd/libs/xml
 autoload.d ~zshd/libs/phunter
+autoload.d ~zshd/libs/crypto
 
 #-------------------------------------------------------------- [ Zsh.Zle.UserWidget ]
 autoload.d ~/.zsh.d/zle.d
@@ -185,7 +180,6 @@ import() {
 source ~/.zsh.d/libs/openai.zsh
 source ~/.zsh.d/libs/misc.zsh
 export EDITOR=vim
-source /src/cmcm/wallet_service/tool/irtools/init.zsh
 source ~/.zsh.d/libs/ai.zsh
 
 # 防止idea抽风
