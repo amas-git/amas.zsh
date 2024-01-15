@@ -1,0 +1,31 @@
+#!/bin/zsh
+
+
+function bitrue.price() {
+
+
+}
+
+function bitrue.market() {
+    print "bitrue.market"
+}
+
+
+#-------------------------------------------[ main ]
+( ## START : functions NOT EXPORTED
+
+function bitrue.help() {
+    print -n -u2 -- "\
+bitrue cli interface 
+"
+}
+
+function main() {
+    local cmd=$1
+    [[ -n $cmd ]] && shift
+    bitrue.$cmd "$@argv"
+}
+
+main "$@"
+
+) ## END
