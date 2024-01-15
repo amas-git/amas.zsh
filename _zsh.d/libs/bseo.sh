@@ -15,6 +15,13 @@ function main() {
 
 }
 
+
+function sleep.random() {
+    local min=${1:=10}
+    local max=${2:=20}
+    sleep $(( (min+RANDOM)%max ))
+}
+
 function bseo.urls() {
     local xs=(${argv:=$(<&0)})
     
@@ -25,6 +32,7 @@ function bseo.urls() {
             n=$[n+100+100]
             sleep 1 
             googler -s $s -n $n --json "search" | jq '.[].url'
+            sleep.random
         done
     done
 }
