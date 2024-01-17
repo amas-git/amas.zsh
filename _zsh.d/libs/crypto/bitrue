@@ -1,6 +1,17 @@
 #!/bin/zsh
 
+local API=https://openapi.bitrue.com/api/
 
+function @require() {
+    for x in $argv; do
+        whence $x > /dev/null || {
+            print -u2 "@require: command not found: $x"; return 1
+        }
+    done
+}
+
+@require jq curl openssl
+#-------------------------------------------[ bitrue.$command ]
 function bitrue.price() {
 
 
@@ -10,20 +21,82 @@ function bitrue.market() {
     print "bitrue.market"
 }
 
+function bitrue.env() {
+    print ${(e):-"""\
+BITRUE_AKEY: api key
+BITRUE_SKEY: secret key
+"""}
+}
 
+function bitrue.coins() {
+    local r=$(bitrue.spot.api.exchangeInfo)
+    [[ -z $r ]] && return 1
+    print $r | @jq '.coins[] | [.coin, (.chains | join(":")), .coinFulName] | @tsv'
+}
+#-------------------------------------------[ spot.api ]
+function bitrue.spot.api.serverTime() {
+    GET v1/time
+}
+
+function bitrue.api.ping() {
+
+}
+
+function bitrue.spot.api.exchangeInfo() {
+    GET v1/exchangeInfo
+}
+
+
+function bitrue.spot.api.openOrders() {
+
+}
+
+function bitrue.spot.api.ticker.price() {
+    local symbol=${1:=btcusdt}
+    GET "v1/ticker/price?symbol=${(U)symbol}"
+}
+
+function bitrue.api() {
+
+}
+
+
+function bitrue.api.SIGN() {
+    local s=$(print -n ${1} | openssl dgst -sha256 -hmac $BITRUE_SKEY)
+    print -n ${s/*= }
+}
+#-------------------------------------------[ http ]
+function @jq() {
+    jq -r "$@"
+}
+function @GET() {
+
+}
+
+function @POST() {
+
+}
+
+function GET() {
+    curl -s $API/$1
+}
+
+function POST() {
+
+}
 #-------------------------------------------[ main ]
 ( ## START : functions NOT EXPORTED
 
 function bitrue.help() {
     print -n -u2 -- "\
-bitrue cli interface 
+bitrue cli interface
 "
 }
 
 function main() {
     local cmd=$1
     [[ -n $cmd ]] && shift
-    bitrue.$cmd "$@argv"
+    bitrue.$cmd "$@"
 }
 
 main "$@"

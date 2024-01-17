@@ -144,6 +144,7 @@ autoload.d ~zshd/funcs.d ~self.fun
 autoload.d ~zshd/libs/amasm
 autoload.d ~zshd/libs/phunter
 autoload.d ~zshd/libs/crypto
+autoload.d ~zshd/libs/date
 
 #-------------------------------------------------------------- [ Zsh.Zle.UserWidget ]
 autoload.d ~/.zsh.d/zle.d
